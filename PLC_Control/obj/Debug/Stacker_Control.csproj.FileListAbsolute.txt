@@ -1,0 +1,5 @@
+C:\Users\user\Desktop\Stacker_Control-0112\PLC_Control\obj\Debug\Interop.DATABUILDERAXLibLB.dll
+C:\Users\user\Desktop\Stacker_Control-0112\PLC_Control\obj\Debug\AxInterop.DATABUILDERAXLibLB.dll
+C:\Users\user\Desktop\Stacker_Control-0112\PLC_Control\obj\Debug\Stacker_Control.csproj.ResolveComReference.cache
+C:\Users\user\Desktop\Stacker_Control-0112\PLC_Control\obj\Debug\PLC_Control.exe
+C:\Users\user\Desktop\Stacker_Control-0112\PLC_Control\obj\Debug\PLC_Control.pdb
