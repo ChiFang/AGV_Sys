@@ -164,6 +164,7 @@
             this.panelDebug = new System.Windows.Forms.Panel();
             this.ObjectDetectText = new System.Windows.Forms.Label();
             this.button5 = new System.Windows.Forms.Button();
+            this.comboBox_MachineType = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).BeginInit();
             this.tabPage4.SuspendLayout();
             this.groupBox9.SuspendLayout();
@@ -218,7 +219,7 @@
             // btnDirectionBack
             // 
             this.btnDirectionBack.Location = new System.Drawing.Point(795, 113);
-            this.btnDirectionBack.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnDirectionBack.Margin = new System.Windows.Forms.Padding(2);
             this.btnDirectionBack.Name = "btnDirectionBack";
             this.btnDirectionBack.Size = new System.Drawing.Size(70, 33);
             this.btnDirectionBack.TabIndex = 15;
@@ -230,7 +231,7 @@
             // btnDirectionFront
             // 
             this.btnDirectionFront.Location = new System.Drawing.Point(795, 71);
-            this.btnDirectionFront.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnDirectionFront.Margin = new System.Windows.Forms.Padding(2);
             this.btnDirectionFront.Name = "btnDirectionFront";
             this.btnDirectionFront.Size = new System.Drawing.Size(70, 34);
             this.btnDirectionFront.TabIndex = 15;
@@ -242,7 +243,7 @@
             // btnAccelerator
             // 
             this.btnAccelerator.Location = new System.Drawing.Point(794, 28);
-            this.btnAccelerator.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnAccelerator.Margin = new System.Windows.Forms.Padding(2);
             this.btnAccelerator.Name = "btnAccelerator";
             this.btnAccelerator.Size = new System.Drawing.Size(71, 34);
             this.btnAccelerator.TabIndex = 4;
@@ -319,7 +320,7 @@
             // btnRelaxMotor
             // 
             this.btnRelaxMotor.Location = new System.Drawing.Point(706, 93);
-            this.btnRelaxMotor.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnRelaxMotor.Margin = new System.Windows.Forms.Padding(2);
             this.btnRelaxMotor.Name = "btnRelaxMotor";
             this.btnRelaxMotor.Size = new System.Drawing.Size(68, 36);
             this.btnRelaxMotor.TabIndex = 23;
@@ -341,7 +342,7 @@
             // btnClibratOrigin
             // 
             this.btnClibratOrigin.Location = new System.Drawing.Point(627, 197);
-            this.btnClibratOrigin.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnClibratOrigin.Margin = new System.Windows.Forms.Padding(2);
             this.btnClibratOrigin.Name = "btnClibratOrigin";
             this.btnClibratOrigin.Size = new System.Drawing.Size(146, 45);
             this.btnClibratOrigin.TabIndex = 24;
@@ -380,7 +381,7 @@
             this.Column4,
             this.Column5});
             this.dataGridView2.Location = new System.Drawing.Point(10, 429);
-            this.dataGridView2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.dataGridView2.Margin = new System.Windows.Forms.Padding(2);
             this.dataGridView2.MultiSelect = false;
             this.dataGridView2.Name = "dataGridView2";
             this.dataGridView2.ReadOnly = true;
@@ -480,9 +481,9 @@
             this.tabPage4.Controls.Add(this.groupBox9);
             this.tabPage4.Controls.Add(this.groupBox7);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
-            this.tabPage4.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage4.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(2);
             this.tabPage4.Size = new System.Drawing.Size(600, 368);
             this.tabPage4.TabIndex = 6;
             this.tabPage4.Text = "NAV-350";
@@ -818,9 +819,9 @@
             this.tabLidar3.Controls.Add(this.btnResetView);
             this.tabLidar3.Controls.Add(this.btnStartLidar);
             this.tabLidar3.Location = new System.Drawing.Point(4, 22);
-            this.tabLidar3.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabLidar3.Margin = new System.Windows.Forms.Padding(2);
             this.tabLidar3.Name = "tabLidar3";
-            this.tabLidar3.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabLidar3.Padding = new System.Windows.Forms.Padding(2);
             this.tabLidar3.Size = new System.Drawing.Size(600, 368);
             this.tabLidar3.TabIndex = 5;
             this.tabLidar3.Text = "Lidar";
@@ -845,7 +846,7 @@
             // btnOpenLidarFile
             // 
             this.btnOpenLidarFile.Location = new System.Drawing.Point(405, 4);
-            this.btnOpenLidarFile.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnOpenLidarFile.Margin = new System.Windows.Forms.Padding(2);
             this.btnOpenLidarFile.Name = "btnOpenLidarFile";
             this.btnOpenLidarFile.Size = new System.Drawing.Size(71, 19);
             this.btnOpenLidarFile.TabIndex = 84;
@@ -856,7 +857,7 @@
             // btnLidarDataOut
             // 
             this.btnLidarDataOut.Location = new System.Drawing.Point(284, 4);
-            this.btnLidarDataOut.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnLidarDataOut.Margin = new System.Windows.Forms.Padding(2);
             this.btnLidarDataOut.Name = "btnLidarDataOut";
             this.btnLidarDataOut.Size = new System.Drawing.Size(71, 19);
             this.btnLidarDataOut.TabIndex = 82;
@@ -867,7 +868,7 @@
             // btnLidarRecode
             // 
             this.btnLidarRecode.Location = new System.Drawing.Point(209, 4);
-            this.btnLidarRecode.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnLidarRecode.Margin = new System.Windows.Forms.Padding(2);
             this.btnLidarRecode.Name = "btnLidarRecode";
             this.btnLidarRecode.Size = new System.Drawing.Size(71, 19);
             this.btnLidarRecode.TabIndex = 81;
@@ -878,7 +879,7 @@
             // btnResetView
             // 
             this.btnResetView.Location = new System.Drawing.Point(79, 4);
-            this.btnResetView.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnResetView.Margin = new System.Windows.Forms.Padding(2);
             this.btnResetView.Name = "btnResetView";
             this.btnResetView.Size = new System.Drawing.Size(69, 20);
             this.btnResetView.TabIndex = 80;
@@ -889,7 +890,7 @@
             // btnStartLidar
             // 
             this.btnStartLidar.Location = new System.Drawing.Point(5, 5);
-            this.btnStartLidar.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnStartLidar.Margin = new System.Windows.Forms.Padding(2);
             this.btnStartLidar.Name = "btnStartLidar";
             this.btnStartLidar.Size = new System.Drawing.Size(71, 19);
             this.btnStartLidar.TabIndex = 79;
@@ -904,7 +905,7 @@
             this.tabPage2.Controls.Add(this.groupBox4);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage2.Size = new System.Drawing.Size(600, 368);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Setting";
@@ -921,9 +922,9 @@
             this.groupBox3.Controls.Add(this.txtSetHeight);
             this.groupBox3.Controls.Add(this.btnRotation);
             this.groupBox3.Location = new System.Drawing.Point(30, 151);
-            this.groupBox3.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.groupBox3.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.groupBox3.Padding = new System.Windows.Forms.Padding(2);
             this.groupBox3.Size = new System.Drawing.Size(254, 209);
             this.groupBox3.TabIndex = 12;
             this.groupBox3.TabStop = false;
@@ -933,7 +934,7 @@
             // 
             this.txtFrontBackValue.Font = new System.Drawing.Font("新細明體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.txtFrontBackValue.Location = new System.Drawing.Point(119, 146);
-            this.txtFrontBackValue.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.txtFrontBackValue.Margin = new System.Windows.Forms.Padding(2);
             this.txtFrontBackValue.Name = "txtFrontBackValue";
             this.txtFrontBackValue.Size = new System.Drawing.Size(120, 27);
             this.txtFrontBackValue.TabIndex = 43;
@@ -942,7 +943,7 @@
             // btnSetForkLeftRight
             // 
             this.btnSetForkLeftRight.Location = new System.Drawing.Point(13, 37);
-            this.btnSetForkLeftRight.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnSetForkLeftRight.Margin = new System.Windows.Forms.Padding(2);
             this.btnSetForkLeftRight.Name = "btnSetForkLeftRight";
             this.btnSetForkLeftRight.Size = new System.Drawing.Size(91, 26);
             this.btnSetForkLeftRight.TabIndex = 37;
@@ -953,7 +954,7 @@
             // btnDoFrontBack
             // 
             this.btnDoFrontBack.Location = new System.Drawing.Point(13, 144);
-            this.btnDoFrontBack.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnDoFrontBack.Margin = new System.Windows.Forms.Padding(2);
             this.btnDoFrontBack.Name = "btnDoFrontBack";
             this.btnDoFrontBack.Size = new System.Drawing.Size(91, 26);
             this.btnDoFrontBack.TabIndex = 42;
@@ -966,7 +967,7 @@
             // 
             this.txtForkValue.Font = new System.Drawing.Font("新細明體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.txtForkValue.Location = new System.Drawing.Point(119, 37);
-            this.txtForkValue.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.txtForkValue.Margin = new System.Windows.Forms.Padding(2);
             this.txtForkValue.Name = "txtForkValue";
             this.txtForkValue.Size = new System.Drawing.Size(120, 27);
             this.txtForkValue.TabIndex = 36;
@@ -976,7 +977,7 @@
             // 
             this.txtRotationValue.Font = new System.Drawing.Font("新細明體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.txtRotationValue.Location = new System.Drawing.Point(119, 110);
-            this.txtRotationValue.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.txtRotationValue.Margin = new System.Windows.Forms.Padding(2);
             this.txtRotationValue.Name = "txtRotationValue";
             this.txtRotationValue.Size = new System.Drawing.Size(120, 27);
             this.txtRotationValue.TabIndex = 41;
@@ -985,7 +986,7 @@
             // btnSetHeight
             // 
             this.btnSetHeight.Location = new System.Drawing.Point(13, 74);
-            this.btnSetHeight.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnSetHeight.Margin = new System.Windows.Forms.Padding(2);
             this.btnSetHeight.Name = "btnSetHeight";
             this.btnSetHeight.Size = new System.Drawing.Size(91, 26);
             this.btnSetHeight.TabIndex = 38;
@@ -997,7 +998,7 @@
             // 
             this.txtSetHeight.Font = new System.Drawing.Font("新細明體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.txtSetHeight.Location = new System.Drawing.Point(119, 74);
-            this.txtSetHeight.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.txtSetHeight.Margin = new System.Windows.Forms.Padding(2);
             this.txtSetHeight.Name = "txtSetHeight";
             this.txtSetHeight.Size = new System.Drawing.Size(120, 27);
             this.txtSetHeight.TabIndex = 39;
@@ -1006,7 +1007,7 @@
             // btnRotation
             // 
             this.btnRotation.Location = new System.Drawing.Point(13, 110);
-            this.btnRotation.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnRotation.Margin = new System.Windows.Forms.Padding(2);
             this.btnRotation.Name = "btnRotation";
             this.btnRotation.Size = new System.Drawing.Size(91, 26);
             this.btnRotation.TabIndex = 40;
@@ -1165,7 +1166,7 @@
             // pictureBox_Angle
             // 
             this.pictureBox_Angle.Location = new System.Drawing.Point(248, 70);
-            this.pictureBox_Angle.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.pictureBox_Angle.Margin = new System.Windows.Forms.Padding(2);
             this.pictureBox_Angle.Name = "pictureBox_Angle";
             this.pictureBox_Angle.Size = new System.Drawing.Size(20, 17);
             this.pictureBox_Angle.TabIndex = 16;
@@ -1237,7 +1238,7 @@
             this.tabPage1.Controls.Add(this.groupBox2);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage1.Size = new System.Drawing.Size(600, 368);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Control";
@@ -1284,7 +1285,7 @@
             // btnBrakes
             // 
             this.btnBrakes.Location = new System.Drawing.Point(143, 150);
-            this.btnBrakes.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnBrakes.Margin = new System.Windows.Forms.Padding(2);
             this.btnBrakes.Name = "btnBrakes";
             this.btnBrakes.Size = new System.Drawing.Size(114, 34);
             this.btnBrakes.TabIndex = 14;
@@ -1296,7 +1297,7 @@
             // btnClutch
             // 
             this.btnClutch.Location = new System.Drawing.Point(17, 150);
-            this.btnClutch.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnClutch.Margin = new System.Windows.Forms.Padding(2);
             this.btnClutch.Name = "btnClutch";
             this.btnClutch.Size = new System.Drawing.Size(114, 34);
             this.btnClutch.TabIndex = 13;
@@ -1315,9 +1316,9 @@
             this.groupBox5.Controls.Add(this.btnDown);
             this.groupBox5.Controls.Add(this.btnUp);
             this.groupBox5.Location = new System.Drawing.Point(271, 18);
-            this.groupBox5.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.groupBox5.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.groupBox5.Padding = new System.Windows.Forms.Padding(2);
             this.groupBox5.Size = new System.Drawing.Size(294, 169);
             this.groupBox5.TabIndex = 12;
             this.groupBox5.TabStop = false;
@@ -1326,7 +1327,7 @@
             // btnSloping
             // 
             this.btnSloping.Location = new System.Drawing.Point(155, 96);
-            this.btnSloping.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnSloping.Margin = new System.Windows.Forms.Padding(2);
             this.btnSloping.Name = "btnSloping";
             this.btnSloping.Size = new System.Drawing.Size(63, 50);
             this.btnSloping.TabIndex = 15;
@@ -1338,7 +1339,7 @@
             // btnRight
             // 
             this.btnRight.Location = new System.Drawing.Point(226, 96);
-            this.btnRight.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnRight.Margin = new System.Windows.Forms.Padding(2);
             this.btnRight.Name = "btnRight";
             this.btnRight.Size = new System.Drawing.Size(63, 50);
             this.btnRight.TabIndex = 13;
@@ -1350,7 +1351,7 @@
             // btnLeft
             // 
             this.btnLeft.Location = new System.Drawing.Point(226, 27);
-            this.btnLeft.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnLeft.Margin = new System.Windows.Forms.Padding(2);
             this.btnLeft.Name = "btnLeft";
             this.btnLeft.Size = new System.Drawing.Size(63, 50);
             this.btnLeft.TabIndex = 14;
@@ -1362,7 +1363,7 @@
             // btnOblique
             // 
             this.btnOblique.Location = new System.Drawing.Point(154, 27);
-            this.btnOblique.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnOblique.Margin = new System.Windows.Forms.Padding(2);
             this.btnOblique.Name = "btnOblique";
             this.btnOblique.Size = new System.Drawing.Size(63, 50);
             this.btnOblique.TabIndex = 16;
@@ -1374,7 +1375,7 @@
             // btnBack
             // 
             this.btnBack.Location = new System.Drawing.Point(81, 96);
-            this.btnBack.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnBack.Margin = new System.Windows.Forms.Padding(2);
             this.btnBack.Name = "btnBack";
             this.btnBack.Size = new System.Drawing.Size(63, 50);
             this.btnBack.TabIndex = 10;
@@ -1386,7 +1387,7 @@
             // btnFront
             // 
             this.btnFront.Location = new System.Drawing.Point(81, 27);
-            this.btnFront.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnFront.Margin = new System.Windows.Forms.Padding(2);
             this.btnFront.Name = "btnFront";
             this.btnFront.Size = new System.Drawing.Size(63, 50);
             this.btnFront.TabIndex = 11;
@@ -1398,7 +1399,7 @@
             // btnDown
             // 
             this.btnDown.Location = new System.Drawing.Point(8, 97);
-            this.btnDown.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnDown.Margin = new System.Windows.Forms.Padding(2);
             this.btnDown.Name = "btnDown";
             this.btnDown.Size = new System.Drawing.Size(63, 50);
             this.btnDown.TabIndex = 8;
@@ -1410,7 +1411,7 @@
             // btnUp
             // 
             this.btnUp.Location = new System.Drawing.Point(9, 27);
-            this.btnUp.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.btnUp.Margin = new System.Windows.Forms.Padding(2);
             this.btnUp.Name = "btnUp";
             this.btnUp.Size = new System.Drawing.Size(63, 50);
             this.btnUp.TabIndex = 9;
@@ -1492,7 +1493,7 @@
             // 
             this.pictureBox2.Image = global::PLC_Control.Properties.Resources.forklift__1_;
             this.pictureBox2.Location = new System.Drawing.Point(-2, 0);
-            this.pictureBox2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.pictureBox2.Margin = new System.Windows.Forms.Padding(2);
             this.pictureBox2.Name = "pictureBox2";
             this.pictureBox2.Size = new System.Drawing.Size(572, 162);
             this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -1612,11 +1613,24 @@
             this.button5.UseVisualStyleBackColor = true;
             this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
+            // comboBox_MachineType
+            // 
+            this.comboBox_MachineType.FormattingEnabled = true;
+            this.comboBox_MachineType.Items.AddRange(new object[] {
+            "大車",
+            "小車"});
+            this.comboBox_MachineType.Location = new System.Drawing.Point(779, 360);
+            this.comboBox_MachineType.Name = "comboBox_MachineType";
+            this.comboBox_MachineType.Size = new System.Drawing.Size(97, 20);
+            this.comboBox_MachineType.TabIndex = 104;
+            this.comboBox_MachineType.SelectionChangeCommitted += new System.EventHandler(this.comboBox_MachineType_SelectionChangeCommitted);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(885, 532);
+            this.Controls.Add(this.comboBox_MachineType);
             this.Controls.Add(this.ObjectDetectText);
             this.Controls.Add(this.panelDebug);
             this.Controls.Add(this.btnClibratOrigin);
@@ -1811,6 +1825,7 @@
         private System.Windows.Forms.ToolStripMenuItem 關於ToolStripMenuItem;
         private System.Windows.Forms.Label ObjectDetectText;
         private System.Windows.Forms.Button button5;
+        private System.Windows.Forms.ComboBox comboBox_MachineType;
     }
 }
 

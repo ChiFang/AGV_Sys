@@ -154,6 +154,15 @@ namespace AlgorithmTool
 
         public enum rtAGVStatus { STANDBY, PAUSE, STOP, EMERGENCY_STOP, MOVE_TO_SRC, LOAD, MOVE_TO_DEST, UNLOAD, MOVE_TO_PARK, ERROR_NO_CFG, PARKING, ALIMENT};
 
+        public enum Type_Self_Carriage
+        {
+            BigCar = 0,
+            MediumCar = 1,
+            SmallCar = 2,
+            other = 3,
+        };
+
+
 		/** \brief Define: 算路徑時判斷是否已在終點   */
         public const int ARRIVE_CHECK_NEAR = 50;
 
@@ -333,6 +342,27 @@ namespace AlgorithmTool
         /// <param name="a_bAligmentFree">[IN] Aligment request: False: need aligment True: do not need </param>
         public void rtAGV_MotorCtrl(ref rtPath_Info[] a_atPathInfo, double a_eDirection, bool a_bAligmentFree)
         {   // 一定要傳path 因為 path 不一定是agv裡面送貨用的 有可能是 取放貨時前進後退用的
+
+            switch (tAGV_Data.ucAGV_Status)
+            {
+                // 導航到停車處
+                case (byte)Type_Self_Carriage.BigCar:   // 大車
+                    rtAGV_MotorCtrl_BigCar(a_atPathInfo, a_eDirection, a_bAligmentFree);
+                    break;
+                case (byte)Type_Self_Carriage.SmallCar:   // 小車
+                    rtAGV_MotorCtrl_SmallCar(a_atPathInfo, a_eDirection, a_bAligmentFree);
+                    break;
+                default:
+                    // show error msg
+                    break;
+            }
+            return;
+
+        }
+
+
+        public void rtAGV_MotorCtrl_BigCar(rtPath_Info[] a_atPathInfo, double a_eDirection, bool a_bAligmentFree)
+        {
             double eTargetAngle = 0, eTargetError = 0, eWheelTheta = 0;
             int lPathIndex = 0;
             rtVector tV_S2D = new rtVector();
@@ -355,11 +385,11 @@ namespace AlgorithmTool
                 {   // 這段路徑還沒對正過
                     eTargetError = Math.Abs(rtAngleDiff.GetAngleDiff(tV_S2D, tAGV_Data.tCarInfo.eAngle));   // 車身角度跟路線的角度差
 
-                    if(a_atPathInfo[lPathIndex].ucTurnType == (byte)rtPath_Info.rtTurnType.ARRIVE)
-                    {   
+                    if (a_atPathInfo[lPathIndex].ucTurnType == (byte)rtPath_Info.rtTurnType.ARRIVE)
+                    {
                         bBackMode = false;    //  這段就得取貨 >> 強迫正走
                     }
-                    else if(a_atPathInfo[lPathIndex].ucTurnType == (byte)rtPath_Info.rtTurnType.PARK)
+                    else if (a_atPathInfo[lPathIndex].ucTurnType == (byte)rtPath_Info.rtTurnType.PARK)
                     {
                         bBackMode = true;    //  這段就得停車 >> 強迫反走
                     }
@@ -367,7 +397,7 @@ namespace AlgorithmTool
                     {
                         bBackMode = (eTargetError >= 90) ? true : false;    // 自行判斷正走還是反走方便
                     }
-                    
+
                     eWheelTheta = Math.Abs(tAGV_Data.tCarInfo.eWheelAngle); // 當下車輪角度
 
                     // 初步檢測 >> 角度&輪胎偏差別太大就執行路徑
@@ -436,6 +466,10 @@ namespace AlgorithmTool
                 }
                 return;
             }
+        }
+
+        public void rtAGV_MotorCtrl_SmallCar(rtPath_Info[] a_atPathInfo, double a_eDirection, bool a_bAligmentFree)
+        {
         }
 
         /// <summary>

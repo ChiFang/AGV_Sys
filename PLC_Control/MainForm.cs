@@ -53,7 +53,7 @@ namespace PLC_Control
             try
             {
                 //讓Form在最上層
-                this.TopMost = true;
+                //this.TopMost = true;
                 this.Focus();
 
                 //初始化貨物、地圖設定，宣告rtAGV_Control
@@ -1693,6 +1693,7 @@ namespace PLC_Control
 
             //讀取PLC的高度及速度資訊
             if (DeliverData.tAGV_Data.ucAGV_Status != 0) GetFrontWheelSpeed();
+            
 
             //紀錄讀取完的時間
             //GlobalVar.Watch_Read_PLC_Data.Start();
@@ -2328,6 +2329,22 @@ namespace PLC_Control
             AdvBusFunc.TransData[4] = GlobalVar.RotateSpeed;
             AdvBusFunc.TransData[5] = GlobalVar.RotateSpeed;
             AdvBusFunc.isSend = true;
+        }
+
+        int aa = 0;
+        private void comboBox_MachineType_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            if (comboBox_MachineType.SelectedIndex == 0)
+            {
+                //tAGV_Data.ucAGV_Status.
+                //DeliverData.Type_Self_Carriage.BigCar
+                aa = 1;
+            }
+            else if (comboBox_MachineType.SelectedIndex == 1)
+            {
+                aa = 2;
+            }
+
         }
     }
 
