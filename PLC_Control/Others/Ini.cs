@@ -68,10 +68,8 @@ namespace Others
         /** \brief 自走車慢速速度*/
         public int SLOW_SPEED = 50;
 
-
         public int MACHINE_TYPE;
         
-
         /** \brief Define: file name1   */
         public const string filename_Cfg1 = "Cfg_1.ini";
 
@@ -123,11 +121,7 @@ namespace Others
             CAR_LENGTH = Convert.ToInt32(temp.ToString());
 
             GetPrivateProfileString("Car Cfg", "CAR_WIDTH_WHEEL", "", temp, size, ".\\" + filename_Cfg1);
-            CAR_WIDTH_WHEEL = Convert.ToInt32(temp.ToString());
-
-
-            
-            
+            CAR_WIDTH_WHEEL = Convert.ToInt32(temp.ToString());  
         }
 
         /** \brief Define: 區域個數   */
@@ -147,7 +141,6 @@ namespace Others
 
         /** \brief Define: file name2   */
         public const string filename_Cfg2 = "Cfg_2.ini";
-
 
         public rtAGV_Control Read_ini_Cfg2(rtAGV_Control DeliverData)
         {
@@ -276,13 +269,10 @@ namespace Others
             }
             #endregion
 
-            GetPrivateProfileString("Motor Control Cfg", "MACHINE_TYPE", "", temp, size, ".\\" + filename_Cfg1);
+            GetPrivateProfileString("Car Cfg", "MACHINE_TYPE", "", temp, size, ".\\" + filename_Cfg1);
             MACHINE_TYPE = Convert.ToInt32(temp.ToString());
             return DeliverData;
         }
-
-
-
 
         /** \brief Define: 光達精確度   */
         public double Lidar_Accuracy;
@@ -343,7 +333,7 @@ namespace Others
 
         public void Save_ini_Cfg()
         {
-            WritePrivateProfileString("Motor Control Cfg", "MACHINE_TYPE", MACHINE_TYPE.ToString(), ".\\" + filename_Cfg1);
+            WritePrivateProfileString("Car Cfg", "MACHINE_TYPE", MACHINE_TYPE.ToString(), ".\\" + filename_Cfg1);
         }
     }
 }

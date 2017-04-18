@@ -159,7 +159,7 @@ namespace AlgorithmTool
             BigCar = 0,
             MediumCar = 1,
             SmallCar = 2,
-            other = 3,
+            Other = 3,
         };
 
 
@@ -239,7 +239,7 @@ namespace AlgorithmTool
             }
             else if (number == 4)
             {
-                tAGV_Data.ucAGV_Status = (byte)Type_Self_Carriage.other;
+                tAGV_Data.ucAGV_Status = (byte)Type_Self_Carriage.Other;
             }
         }
 
@@ -374,15 +374,20 @@ namespace AlgorithmTool
                 case (byte)Type_Self_Carriage.SmallCar:   // 小車
                     rtAGV_MotorCtrl_SmallCar(a_atPathInfo, a_eDirection, a_bAligmentFree);
                     break;
+                case (byte)Type_Self_Carriage.MediumCar:   // 小車
+                    rtAGV_MotorCtrl_MediumCar(a_atPathInfo, a_eDirection, a_bAligmentFree);
+                    break;
+                case (byte)Type_Self_Carriage.Other:   // 小車
+                    rtAGV_MotorCtrl_OtherCar(a_atPathInfo, a_eDirection, a_bAligmentFree); 
+                    break;
                 default:
                     // show error msg
                     break;
             }
             return;
-
         }
 
-
+        //大型車
         public void rtAGV_MotorCtrl_BigCar(rtPath_Info[] a_atPathInfo, double a_eDirection, bool a_bAligmentFree)
         {
             double eTargetAngle = 0, eTargetError = 0, eWheelTheta = 0;
@@ -490,9 +495,21 @@ namespace AlgorithmTool
             }
         }
 
+        //小型車
         public void rtAGV_MotorCtrl_SmallCar(rtPath_Info[] a_atPathInfo, double a_eDirection, bool a_bAligmentFree)
         {
         }
+
+        //中型車
+        public void rtAGV_MotorCtrl_MediumCar(rtPath_Info[] a_atPathInfo, double a_eDirection, bool a_bAligmentFree)
+        {
+        }
+
+        //其他車種
+        public void rtAGV_MotorCtrl_OtherCar(rtPath_Info[] a_atPathInfo, double a_eDirection, bool a_bAligmentFree)
+        {
+        }
+
 
         /// <summary>
         /// Extend Path Size(Length)
