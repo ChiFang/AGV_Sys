@@ -69,6 +69,9 @@ namespace Others
         public int SLOW_SPEED = 50;
 
 
+        public int MACHINE_TYPE;
+        
+
         /** \brief Define: file name1   */
         public const string filename_Cfg1 = "Cfg_1.ini";
 
@@ -121,6 +124,10 @@ namespace Others
 
             GetPrivateProfileString("Car Cfg", "CAR_WIDTH_WHEEL", "", temp, size, ".\\" + filename_Cfg1);
             CAR_WIDTH_WHEEL = Convert.ToInt32(temp.ToString());
+
+
+            
+            
         }
 
         /** \brief Define: 區域個數   */
@@ -268,6 +275,9 @@ namespace Others
                 }
             }
             #endregion
+
+            GetPrivateProfileString("Motor Control Cfg", "MACHINE_TYPE", "", temp, size, ".\\" + filename_Cfg1);
+            MACHINE_TYPE = Convert.ToInt32(temp.ToString());
             return DeliverData;
         }
 
@@ -331,5 +341,9 @@ namespace Others
             #endregion
         }
 
+        public void Save_ini_Cfg()
+        {
+            WritePrivateProfileString("Motor Control Cfg", "MACHINE_TYPE", MACHINE_TYPE.ToString(), ".\\" + filename_Cfg1);
+        }
     }
 }

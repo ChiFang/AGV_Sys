@@ -221,6 +221,28 @@ namespace AlgorithmTool
             Reset(this);
         }
 
+
+
+        public void rtAGV_Chang_Type_Self_Carriage(int number)
+        {
+            if (number == 1)
+            {
+                tAGV_Data.ucAGV_Status = (byte)Type_Self_Carriage.BigCar;
+            }
+            else if (number == 2)
+            {
+                tAGV_Data.ucAGV_Status = (byte)Type_Self_Carriage.MediumCar;
+            }
+            else if (number == 3)
+            {
+                tAGV_Data.ucAGV_Status = (byte)Type_Self_Carriage.SmallCar;
+            }
+            else if (number == 4)
+            {
+                tAGV_Data.ucAGV_Status = (byte)Type_Self_Carriage.other;
+            }
+        }
+
         /// <summary>
         /// Execute Cmd from wireless signal like WIFI
         /// </summary>

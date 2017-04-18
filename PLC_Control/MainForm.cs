@@ -71,6 +71,9 @@ namespace PLC_Control
             panelDebug.Width = panelSetLocation.Width;
 
             panelDebug.Visible = false;
+
+            comboBox_MachineType.SelectedIndex = Main_Ini.MACHINE_TYPE;
+            DeliverData.rtAGV_Chang_Type_Self_Carriage(Main_Ini.MACHINE_TYPE+1);
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -86,6 +89,8 @@ namespace PLC_Control
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
+            Main_Ini.MACHINE_TYPE = comboBox_MachineType.SelectedIndex;
+            Main_Ini.Save_ini_Cfg();
             //關閉程式
             Text_Debug.SaveConfig();
             Process.GetCurrentProcess().Kill();
@@ -2331,20 +2336,24 @@ namespace PLC_Control
             AdvBusFunc.isSend = true;
         }
 
-        int aa = 0;
         private void comboBox_MachineType_SelectionChangeCommitted(object sender, EventArgs e)
         {
             if (comboBox_MachineType.SelectedIndex == 0)
             {
-                //tAGV_Data.ucAGV_Status.
-                //DeliverData.Type_Self_Carriage.BigCar
-                aa = 1;
+                DeliverData.rtAGV_Chang_Type_Self_Carriage(1);
             }
             else if (comboBox_MachineType.SelectedIndex == 1)
             {
-                aa = 2;
+                DeliverData.rtAGV_Chang_Type_Self_Carriage(2);
             }
-
+            else if (comboBox_MachineType.SelectedIndex == 2)
+            {
+                DeliverData.rtAGV_Chang_Type_Self_Carriage(3);
+            }
+            else if (comboBox_MachineType.SelectedIndex == 3)
+            {
+                DeliverData.rtAGV_Chang_Type_Self_Carriage(4);
+            }
         }
     }
 

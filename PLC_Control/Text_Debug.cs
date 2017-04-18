@@ -116,6 +116,7 @@ namespace PLC_Control
                 sw.WriteLine(Src_Y);
                 sw.WriteLine(Dest_X);
                 sw.WriteLine(Dest_Y);
+                sw.WriteLine(Dest_Y);
             }
         }
 
@@ -142,7 +143,6 @@ namespace PLC_Control
             textBox_Src_X.Text = Src_X;
             textBox_Src_Y.Text = Src_Y;
             textBox_Dest_X.Text = Dest_X;
-            textBox_Dest_Y.Text = Dest_Y;
         }
         
         private void btnTextBack_Click(object sender, EventArgs e)
