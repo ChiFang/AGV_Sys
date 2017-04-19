@@ -368,16 +368,16 @@ namespace AlgorithmTool
             switch (tAGV_Data.ucAGV_Status)
             {
                 // 導航到停車處
-                case (byte)Type_Self_Carriage.BigCar:   // 大車
+                case (byte)Type_Self_Carriage.BigCar:   // 大型車
                     rtAGV_MotorCtrl_BigCar(a_atPathInfo, a_eDirection, a_bAligmentFree);
                     break;
-                case (byte)Type_Self_Carriage.SmallCar:   // 小車
+                case (byte)Type_Self_Carriage.SmallCar:   // 小型車
                     rtAGV_MotorCtrl_SmallCar(a_atPathInfo, a_eDirection, a_bAligmentFree);
                     break;
-                case (byte)Type_Self_Carriage.MediumCar:   // 小車
+                case (byte)Type_Self_Carriage.MediumCar:   // 中型車
                     rtAGV_MotorCtrl_MediumCar(a_atPathInfo, a_eDirection, a_bAligmentFree);
                     break;
-                case (byte)Type_Self_Carriage.Other:   // 小車
+                case (byte)Type_Self_Carriage.Other:   // 其他車
                     rtAGV_MotorCtrl_OtherCar(a_atPathInfo, a_eDirection, a_bAligmentFree); 
                     break;
                 default:
@@ -498,6 +498,107 @@ namespace AlgorithmTool
         //小型車
         public void rtAGV_MotorCtrl_SmallCar(rtPath_Info[] a_atPathInfo, double a_eDirection, bool a_bAligmentFree)
         {
+            double eTargetAngle = 0, eTargetError = 0, eWheelTheta = 0;
+            int lPathIndex = 0;
+            rtVector tV_S2D = new rtVector();
+            rtVector tV_Aligment = new rtVector();
+            bool bAlignment = false;
+            bool bBackMode = false;
+            lPathIndex = tAGV_Data.CMotor.tMotorData.lPathNodeIndex;
+            tV_S2D = rtVectorOP_2D.GetVector(a_atPathInfo[lPathIndex].tSrc, a_atPathInfo[lPathIndex].tDest);
+
+            if (a_bAligmentFree)
+            {   // 不用對正路徑 除非差距過大
+                tAGV_Data.CMotor.tMotorData.bPathAngleMatch = true;
+            }
+            else
+            { // 須要對正路徑 (會自動判斷要正走還是反走)
+                if (tAGV_Data.CMotor.tMotorData.bPathAngleMatch == false)
+                {   // 這段路徑還沒對正過
+                    eTargetError = Math.Abs(rtAngleDiff.GetAngleDiff(tV_S2D, tAGV_Data.tCarInfo.eAngle));   // 車身角度跟路線的角度差
+
+                    if (a_atPathInfo[lPathIndex].ucTurnType == (byte)rtPath_Info.rtTurnType.ARRIVE)
+                    {
+                        bBackMode = false;    //  這段就得取貨 >> 強迫正走
+                    }
+                    else if (a_atPathInfo[lPathIndex].ucTurnType == (byte)rtPath_Info.rtTurnType.PARK)
+                    {
+                        bBackMode = true;    //  這段就得停車 >> 強迫反走
+                    }
+                    else
+                    {
+                        bBackMode = (eTargetError >= 90) ? true : false;    // 自行判斷正走還是反走方便
+                    }
+
+                    eWheelTheta = Math.Abs(tAGV_Data.tCarInfo.eWheelAngle); // 當下車輪角度
+
+                    // 初步檢測 >> 角度&輪胎偏差別太大就執行路徑
+                    if (bBackMode)
+                    {
+                        tAGV_Data.CMotor.tMotorData.bPathAngleMatch = ((180 - eTargetError) < ALIGMENT_SAFE_ANGLE) ? true : false;
+                    }
+                    else
+                    {
+                        tAGV_Data.CMotor.tMotorData.bPathAngleMatch = (eTargetError < ALIGMENT_SAFE_ANGLE) ? true : false;
+                    }
+                    tAGV_Data.CMotor.tMotorData.bPathAngleMatch = (eWheelTheta < rtMotorCtrl.THETA_ERROR_TURN) ? tAGV_Data.CMotor.tMotorData.bPathAngleMatch : false;
+
+                    if (tAGV_Data.CMotor.tMotorData.bPathAngleMatch == false)
+                    {   // 初步檢測 fail >> do aligment
+                        tV_Aligment = (bBackMode) ? rtVectorOP_2D.VectorMultiple(tV_S2D, -1) : tV_S2D;
+                        eTargetAngle = rtVectorOP_2D.Vector2Angle(tV_Aligment);
+
+                        bAlignment = tAGV_Data.CMotor.CarAngleAlignment(
+                            eTargetAngle, tAGV_Data.tCarInfo);
+
+                        if (bAlignment)
+                        {   // 已對準 開始執行路徑 並且把對準旗標拉起來
+                            tAGV_Data.CMotor.tMotorData.bPathAngleMatch = true;
+                        }
+                        else
+                        {   // 沒對準 不做動作就離開
+                            return;
+                        }
+                    }
+                    else
+                    {   // 初步檢測 success >> reset aligment flag "bAlignmentCarAngleMatch"
+                        tAGV_Data.CMotor.ResetCarAlignmentFlag();
+                    }
+                }
+            }
+
+
+            // 正常控制
+            if (a_atPathInfo[tAGV_Data.CMotor.tMotorData.lPathNodeIndex].ucStatus == (byte)rtPath_Info.rtStatus.STRAIGHT)
+            {   //  走直線
+                // decide Motor Power
+                tAGV_Data.CMotor.MotorPower_CtrlNavigateStraight(a_atPathInfo, tAGV_Data.tCarInfo);
+
+                // decide Motor Angle
+                tAGV_Data.CMotor.MotorAngle_CtrlNavigateStraight(a_atPathInfo, tAGV_Data.tCarInfo);
+                return;
+            }
+
+            if (a_atPathInfo[tAGV_Data.CMotor.tMotorData.lPathNodeIndex].ucStatus == (byte)rtPath_Info.rtStatus.TURN)
+            {   //  轉彎
+                switch (a_atPathInfo[tAGV_Data.CMotor.tMotorData.lPathNodeIndex].ucTurnType)
+                {
+                    case (byte)rtPath_Info.rtTurnType.SIMPLE:   // 用Aligment 機制
+                        tAGV_Data.CMotor.Motor_CtrlNavigateAligment(a_atPathInfo, tAGV_Data.tCarInfo);
+                        break;
+                    case (byte)rtPath_Info.rtTurnType.SMOOTH:
+                        // decide Motor Power
+                        tAGV_Data.CMotor.MotorPower_CtrlNavigateSmoothTurn(a_atPathInfo, tAGV_Data.tCarInfo);
+
+                        // decide Motor Angle
+                        tAGV_Data.CMotor.MotorAngle_CtrlNavigateSmoothTurn(a_atPathInfo, tAGV_Data.tCarInfo);
+                        break;
+                    default:
+                        // show error msg
+                        break;
+                }
+                return;
+            }
         }
 
         //中型車
