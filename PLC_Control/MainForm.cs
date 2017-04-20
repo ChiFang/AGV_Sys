@@ -23,7 +23,7 @@ using Others;
 using AlgorithmTool;
 using Arduino_Tool;
 
-
+using System.IO.Ports; //使用於RS485
 
 namespace PLC_Control
 {
@@ -74,6 +74,13 @@ namespace PLC_Control
 
             comboBox_MachineType.SelectedIndex = Main_Ini.MACHINE_TYPE;
             DeliverData.rtAGV_Chang_Type_Self_Carriage(Main_Ini.MACHINE_TYPE+1);
+
+            //小車馬達連線
+            comport = new SerialPort("COM4", 9600, Parity.None, 8, StopBits.One);
+            if (!comport.IsOpen)
+            {
+                comport.Open();
+            }
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -158,8 +165,27 @@ namespace PLC_Control
         {
             Connection_Control_PLC = true;  //PLC連線成功
 
-            btnClutch.Enabled = true;          //離合器
-            btnBrakes.Enabled = true;          //煞車
+            if (comboBox_MachineType.SelectedIndex == 0)
+            {
+                btnClutch.Enabled = true;          //離合器
+                btnBrakes.Enabled = true;          //煞車
+            }
+            else if (comboBox_MachineType.SelectedIndex == 1)
+            {
+
+            }
+            else if (comboBox_MachineType.SelectedIndex == 2)
+            {
+
+            }
+            else if (comboBox_MachineType.SelectedIndex == 3)
+            {
+
+            }
+
+
+            
+            
             //貨叉控制
             btnUp.Enabled = true;       //上
             btnFront.Enabled = true;    //前
@@ -253,6 +279,8 @@ namespace PLC_Control
         LidarFunc Lidar = new LidarFunc();
 
         Ini Main_Ini = new Ini();
+
+        SerialPort comport;//小車馬達用
 
         #endregion
 
@@ -568,7 +596,7 @@ namespace PLC_Control
 
         private void btnMoveFront_MouseDown(object sender, MouseEventArgs e)
         {
-            CarMove(90);//直接控制前進
+            CarMove(90);//直接控制前進    
         }
 
         private void btnMoveFront_MouseUp(object sender, MouseEventArgs e)
@@ -737,8 +765,6 @@ namespace PLC_Control
 
         private void btnCanConnect_Click(object sender, EventArgs e)
         {
-
-
             if (CanConnect_Status == 0) //如果裝置尚未連線
             {
                 //CanBus開始連線
@@ -984,18 +1010,59 @@ namespace PLC_Control
         /// <param name="speed">speed為速度，輸入正為向前進，輸入負為向後退</param>
         public void CarMove(int speed)
         {
-            //放開系統初始煞車
-            obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_MR, "9003", 1);
-            obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "4", 1450);
+            if (comboBox_MachineType.SelectedIndex == 0)//大型車
+            {
+                //放開系統初始煞車
+                obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_MR, "9003", 1);
+                obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "4", 1450);
 
-            int HiSpeed = 0;
-            int LoSpeed = 0;
-            PowerToSpeedTrans(speed, out HiSpeed, out LoSpeed);
-            SendToPowerMotor(HiSpeed, LoSpeed);
+                int HiSpeed = 0;
+                int LoSpeed = 0;
+                PowerToSpeedTrans(speed, out HiSpeed, out LoSpeed);
+                SendToPowerMotor(HiSpeed, LoSpeed);
+            }
+            else if (comboBox_MachineType.SelectedIndex == 1)
+            {
+
+
+            }
+            else if (comboBox_MachineType.SelectedIndex == 2)//小型車
+            {
+                Byte[] buffer = new Byte[8];
+                if (speed == 90)
+                {
+                    buffer[0] = 0x00;
+                    buffer[1] = 0x00;
+                    buffer[2] = 0x00;
+                    buffer[3] = 0x00;
+                    buffer[4] = 0x01;
+                    buffer[5] = 0x00;
+                    buffer[6] = 0x00;
+                    buffer[7] = 0x00;
+                }
+                else
+                {
+                    buffer[0] = 0x00;
+                    buffer[1] = 0x00;
+                    buffer[2] = 0x00;
+                    buffer[3] = 0x01;
+                    buffer[4] = 0x00;
+                    buffer[5] = 0x00;
+                    buffer[6] = 0x00;
+                    buffer[7] = 0x00; 
+                }
+                comport.Write(buffer, 0, buffer.Length);
+
+            }
+            else if (comboBox_MachineType.SelectedIndex == 3)
+            {
+
+            }
+            
 
         }
 
-        public static void MoveStop()
+        public void MoveStop()//static
         {
             //馬達控制-停止
             /*CanBusFunc.TransMoveData[0] = System.Convert.ToByte("09", 16);
@@ -1009,16 +1076,44 @@ namespace PLC_Control
             CanBusFunc.isMoveSend = true;*/
 
 
-            //馬達控制-停止
-            AdvBusFunc.TransMoveData[0] = System.Convert.ToByte("09", 16);
-            AdvBusFunc.TransMoveData[1] = System.Convert.ToByte("00", 16);
-            AdvBusFunc.TransMoveData[2] = System.Convert.ToByte("00", 16);
-            AdvBusFunc.TransMoveData[3] = System.Convert.ToByte("00", 16);
-            AdvBusFunc.TransMoveData[4] = System.Convert.ToByte("69", 16);
-            AdvBusFunc.TransMoveData[5] = System.Convert.ToByte("07", 16);
-            AdvBusFunc.TransMoveData[6] = System.Convert.ToByte("00", 16);
-            AdvBusFunc.TransMoveData[7] = System.Convert.ToByte("00", 16);
-            AdvBusFunc.isMoveSend = true;
+            if (comboBox_MachineType.SelectedIndex == 0)
+            {
+                //馬達控制-停止
+                AdvBusFunc.TransMoveData[0] = System.Convert.ToByte("09", 16);
+                AdvBusFunc.TransMoveData[1] = System.Convert.ToByte("00", 16);
+                AdvBusFunc.TransMoveData[2] = System.Convert.ToByte("00", 16);
+                AdvBusFunc.TransMoveData[3] = System.Convert.ToByte("00", 16);
+                AdvBusFunc.TransMoveData[4] = System.Convert.ToByte("69", 16);
+                AdvBusFunc.TransMoveData[5] = System.Convert.ToByte("07", 16);
+                AdvBusFunc.TransMoveData[6] = System.Convert.ToByte("00", 16);
+                AdvBusFunc.TransMoveData[7] = System.Convert.ToByte("00", 16);
+                AdvBusFunc.isMoveSend = true;
+            }
+            else if (comboBox_MachineType.SelectedIndex == 1)
+            {
+
+            }
+            else if (comboBox_MachineType.SelectedIndex == 2)
+            {
+                Byte[] buffer = new Byte[8];
+                buffer[0] = 0x00;
+                buffer[1] = 0x00;
+                buffer[2] = 0x01;
+                buffer[3] = 0x00;
+                buffer[4] = 0x00;
+                buffer[5] = 0x00;
+                buffer[6] = 0x00;
+                buffer[7] = 0x00;
+
+                comport.Write(buffer, 0, buffer.Length);
+
+            }
+            else if (comboBox_MachineType.SelectedIndex == 3)
+            {
+
+            }
+
+            
         }
 
         #endregion

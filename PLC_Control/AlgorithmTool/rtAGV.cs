@@ -13,6 +13,8 @@ using System.Text;
 using Others;
 using LidarTool;
 
+using System.IO.Ports; //使用於RS485
+
 namespace AlgorithmTool
 {
     /// <summary> 
@@ -495,6 +497,7 @@ namespace AlgorithmTool
             }
         }
 
+        SerialPort comport;
         //小型車
         public void rtAGV_MotorCtrl_SmallCar(rtPath_Info[] a_atPathInfo, double a_eDirection, bool a_bAligmentFree)
         {
@@ -571,11 +574,31 @@ namespace AlgorithmTool
             // 正常控制
             if (a_atPathInfo[tAGV_Data.CMotor.tMotorData.lPathNodeIndex].ucStatus == (byte)rtPath_Info.rtStatus.STRAIGHT)
             {   //  走直線
+
+                comport = new SerialPort("COM4", 9600, Parity.None, 8, StopBits.One);
+                Byte[] buffer = new Byte[8];
+                buffer[0] = 0x00;
+                buffer[1] = 0x00;
+                buffer[2] = 0x00;
+                buffer[3] = 0x00;
+                buffer[4] = 0x01;
+                buffer[5] = 0x00;
+                buffer[6] = 0x00;
+                buffer[7] = 0x00;
+                if (!comport.IsOpen)
+                {
+                    comport.Open();
+                }
+
+                comport.Write(buffer, 0, buffer.Length);
+                //comport.Close();//關閉程式用
+
+                //關閉大車馬達功能
                 // decide Motor Power
-                tAGV_Data.CMotor.MotorPower_CtrlNavigateStraight(a_atPathInfo, tAGV_Data.tCarInfo);
+                //tAGV_Data.CMotor.MotorPower_CtrlNavigateStraight(a_atPathInfo, tAGV_Data.tCarInfo);
 
                 // decide Motor Angle
-                tAGV_Data.CMotor.MotorAngle_CtrlNavigateStraight(a_atPathInfo, tAGV_Data.tCarInfo);
+                //tAGV_Data.CMotor.MotorAngle_CtrlNavigateStraight(a_atPathInfo, tAGV_Data.tCarInfo);
                 return;
             }
 
