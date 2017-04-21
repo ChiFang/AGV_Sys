@@ -35,7 +35,7 @@ namespace PLC_Control
             obj_PLC = new ObjectPLC_KV();
             obj_PLC.axDBCommManager = axDBCommManager_Detector;
             //堆高機初始設定
-            ForkliftControl_Init();
+            
             Text_Debug.CheckConfig();
         }
 
@@ -75,12 +75,17 @@ namespace PLC_Control
             comboBox_MachineType.SelectedIndex = Main_Ini.MACHINE_TYPE;
             DeliverData.rtAGV_Chang_Type_Self_Carriage(Main_Ini.MACHINE_TYPE+1);
 
+            ForkliftControl_Init();
+            ForkliftControl_Enabled(false);
+
             //小車馬達連線
             comport = new SerialPort("COM4", 9600, Parity.None, 8, StopBits.One);
             if (!comport.IsOpen)
             {
                 comport.Open();
             }
+
+            
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -104,71 +109,176 @@ namespace PLC_Control
             Application.Exit();
         }
 
-        public void ForkliftControl_Init()
+        public void ForkliftControl_Enabled(bool TorF)
         {
-            //堆高機控制
-            btnOpenCan.Enabled = false;         //開啟CAN
-            btnSendR.Enabled = false;           //逆時針
-            btnSendL.Enabled = false;           //順時針
-            btnOrigin.Enabled = false;          //原點復歸
-            btnRelaxMotor.Enabled = false;      //放掉馬達
-            btnMoveFront.Enabled = false;       //前進
-            brnMoveBack.Enabled = false;        //後退
-            btnClibratOrigin.Enabled = false;   //原點校正
-            btnEmergencyStop.Enabled = false;   //緊急停止
-            btnDisConnect.Enabled = false;      //PLC DisConnect
-            btnClutch.Enabled = false;          //離合器
-            btnBrakes.Enabled = false;          //煞車
+            btnOpenCan.Enabled = TorF;         //開啟CAN
+            btnSendR.Enabled = TorF;           //逆時針
+            btnSendL.Enabled = TorF;           //順時針
+            btnOrigin.Enabled = TorF;          //原點復歸
+            btnRelaxMotor.Enabled = TorF;      //放掉馬達
+            btnMoveFront.Enabled = TorF;       //前進
+            brnMoveBack.Enabled = TorF;        //後退
+            btnClibratOrigin.Enabled = TorF;   //原點校正
+            btnEmergencyStop.Enabled = TorF;   //緊急停止
+            btnDisConnect.Enabled = TorF;      //PLC DisConnect
+            btnClutch.Enabled = TorF;          //離合器
+            btnBrakes.Enabled = TorF;          //煞車
 
             //貨叉控制
-            btnUp.Enabled = false;       //上
-            btnFront.Enabled = false;    //前
-            btnOblique.Enabled = false;  //上傾斜
-            btnLeft.Enabled = false;     //左
-            btnDown.Enabled = false;     //下
-            btnBack.Enabled = false;     //後
-            btnSloping.Enabled = false;  //下傾斜
-            btnRight.Enabled = false;    //右
+            btnUp.Enabled = TorF;       //上
+            btnFront.Enabled = TorF;    //前
+            btnOblique.Enabled = TorF;  //上傾斜
+            btnLeft.Enabled = TorF;     //左
+            btnDown.Enabled = TorF;     //下
+            btnBack.Enabled = TorF;     //後
+            btnSloping.Enabled = TorF;  //下傾斜
+            btnRight.Enabled = TorF;    //右
 
             //SICK狀態
-            btnNAVDisConnect.Enabled = false;    //斷線
-            btn_Mode_Navigation.Enabled = false; //Navigation
-            btnContinueLocation.Enabled = false; //連續座標
-            btnStartServer.Enabled = false;      //Server連線
-            btnContinue.Enabled = false;         //繼續
-            btnPause.Enabled = false;            //暫停
-            btnDoCmd.Enabled = false;            //執行
-            button1.Enabled = false;             //RunDown1
-            button2.Enabled = false;             //RunDown2
-            button3.Enabled = false;             //RunDown3
-            button4.Enabled = false;             //RunDown4
+            btnNAVDisConnect.Enabled = TorF;    //斷線
+            btn_Mode_Navigation.Enabled = TorF; //Navigation
+            btnContinueLocation.Enabled = TorF; //連續座標
+            btnStartServer.Enabled = TorF;      //Server連線
+            btnContinue.Enabled = TorF;         //繼續
+            btnPause.Enabled = TorF;            //暫停
+            btnDoCmd.Enabled = TorF;            //執行
+            button1.Enabled = TorF;             //RunDown1
+            button2.Enabled = TorF;             //RunDown2
+            button3.Enabled = TorF;             //RunDown3
+            button4.Enabled = TorF;             //RunDown4
+        }
+
+        public void ForkliftControl_Visible(bool TorF)
+        {
+            btnCanConnect.Visible = TorF;       //
+
+            groupBox5.Visible = TorF;       //
+            label_Path.Visible = TorF;       //
+
+            btnOpenCan.Visible = TorF;         //開啟CAN
+            btnSendR.Visible = TorF;           //逆時針
+            btnSendL.Visible = TorF;           //順時針
+            btnOrigin.Visible = TorF;          //原點復歸
+            btnRelaxMotor.Visible = TorF;      //放掉馬達
+            btnMoveFront.Visible = TorF;       //前進
+            brnMoveBack.Visible = TorF;        //後退
+            btnClibratOrigin.Visible = TorF;   //原點校正
+            btnEmergencyStop.Visible = TorF;   //緊急停止
+            btnDisConnect.Visible = TorF;      //PLC DisConnect
+            btnClutch.Visible = TorF;          //離合器
+            btnBrakes.Visible = TorF;          //煞車
+
+            //貨叉控制
+            btnUp.Visible = TorF;       //上
+            btnFront.Visible = TorF;    //前
+            btnOblique.Visible = TorF;  //上傾斜
+            btnLeft.Visible = TorF;     //左
+            btnDown.Visible = TorF;     //下
+            btnBack.Visible = TorF;     //後
+            btnSloping.Visible = TorF;  //下傾斜
+            btnRight.Visible = TorF;    //右
+
+            //SICK狀態
+            btnNAVDisConnect.Visible = TorF;    //斷線
+            btn_Mode_Navigation.Visible = TorF; //Navigation
+            btnContinueLocation.Visible = TorF; //連續座標
+            btnStartServer.Visible = TorF;      //Server連線
+            btnContinue.Visible = TorF;         //繼續
+            btnPause.Visible = TorF;            //暫停
+            btnDoCmd.Visible = TorF;            //執行
+            button1.Visible = TorF;             //RunDown1
+            button2.Visible = TorF;             //RunDown2
+            button3.Visible = TorF;             //RunDown3
+            button4.Visible = TorF;             //RunDown4
+        }
+        
+
+        public void ForkliftControl_Init()
+        {
+            if (comboBox_MachineType.SelectedIndex == 0)
+            {
+                //堆高機控制
+                ForkliftControl_Visible(true);
+                
+            }
+            else if (comboBox_MachineType.SelectedIndex == 1)
+            {
+
+
+            }
+            else if (comboBox_MachineType.SelectedIndex == 2)
+            {
+                //小車控制
+                //ForkliftControl_Enabled(false);
+                ForkliftControl_Visible(false);
+
+            }
+            else if (comboBox_MachineType.SelectedIndex == 3)
+            {
+
+            }
         }
 
 
         public void ForkliftControl_CanBusConnection()
         {
-            Connection_Control_CanBus = true;   //CanBus開啟成功
-
-            btnSendR.Enabled = true;           //逆時針
-            btnSendL.Enabled = true;           //順時針
-            btnOrigin.Enabled = true;          //原點復歸
-            btnRelaxMotor.Enabled = true;      //放掉馬達
-
-            if (Connection_Control_PLC == true) //如果PLC連線成功
+            if (comboBox_MachineType.SelectedIndex == 0)
             {
-                btnClibratOrigin.Enabled = true;   //原點校正
-                btnEmergencyStop.Enabled = true;   //緊急停止
+                Connection_Control_CanBus = true;   //CanBus開啟成功
+
+                btnSendR.Enabled = true;           //逆時針
+                btnSendL.Enabled = true;           //順時針
+                btnOrigin.Enabled = true;          //原點復歸
+                btnRelaxMotor.Enabled = true;      //放掉馬達
+
+                if (Connection_Control_PLC == true) //如果PLC連線成功
+                {
+                    btnClibratOrigin.Enabled = true;   //原點校正
+                    btnEmergencyStop.Enabled = true;   //緊急停止
+                }
+            }
+            else if (comboBox_MachineType.SelectedIndex == 1)
+            {
+
+            }
+            else if (comboBox_MachineType.SelectedIndex == 2)
+            {
+
+            }
+            else if (comboBox_MachineType.SelectedIndex == 3)
+            {
+
             }
         }
 
         public void ForkliftControl_PLCConnection()
         {
-            Connection_Control_PLC = true;  //PLC連線成功
+            
 
             if (comboBox_MachineType.SelectedIndex == 0)
             {
+                Connection_Control_PLC = true;  //PLC連線成功
+
                 btnClutch.Enabled = true;          //離合器
                 btnBrakes.Enabled = true;          //煞車
+
+                //貨叉控制
+                btnUp.Enabled = true;       //上
+                btnFront.Enabled = true;    //前
+                btnOblique.Enabled = true;  //上傾斜
+                btnLeft.Enabled = true;     //左
+                btnDown.Enabled = true;     //下
+                btnBack.Enabled = true;     //後
+                btnSloping.Enabled = true;  //下傾斜
+                btnRight.Enabled = true;    //右
+                btnDisConnect.Enabled = true;//PLC 可按斷線
+
+                if (Connection_Control_CanBus == true)  //如果CanBus連線成功
+                {
+                    btnClibratOrigin.Enabled = true;   //原點校正
+                    btnEmergencyStop.Enabled = true;   //緊急停止
+                }
+
             }
             else if (comboBox_MachineType.SelectedIndex == 1)
             {
@@ -186,22 +296,7 @@ namespace PLC_Control
 
             
             
-            //貨叉控制
-            btnUp.Enabled = true;       //上
-            btnFront.Enabled = true;    //前
-            btnOblique.Enabled = true;  //上傾斜
-            btnLeft.Enabled = true;     //左
-            btnDown.Enabled = true;     //下
-            btnBack.Enabled = true;     //後
-            btnSloping.Enabled = true;  //下傾斜
-            btnRight.Enabled = true;    //右
-            btnDisConnect.Enabled = true;//PLC 可按斷線
-
-            if (Connection_Control_CanBus == true)  //如果CanBus連線成功
-            {
-                btnClibratOrigin.Enabled = true;   //原點校正
-                btnEmergencyStop.Enabled = true;   //緊急停止
-            }
+            
         }
 
         #endregion
@@ -1052,6 +1147,7 @@ namespace PLC_Control
                     buffer[7] = 0x00; 
                 }
                 comport.Write(buffer, 0, buffer.Length);
+                Console.Write(buffer);
 
             }
             else if (comboBox_MachineType.SelectedIndex == 3)
@@ -2449,6 +2545,7 @@ namespace PLC_Control
             {
                 DeliverData.rtAGV_Chang_Type_Self_Carriage(4);
             }
+            ForkliftControl_Init();
         }
     }
 
