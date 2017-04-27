@@ -160,8 +160,8 @@ namespace PLC_Control
             btnSendL.Visible = TorF;           //順時針
             btnOrigin.Visible = TorF;          //原點復歸
             btnRelaxMotor.Visible = TorF;      //放掉馬達
-            btnMoveFront.Visible = TorF;       //前進
-            brnMoveBack.Visible = TorF;        //後退
+            //btnMoveFront.Visible = TorF;       //前進
+            //brnMoveBack.Visible = TorF;        //後退
             btnClibratOrigin.Visible = TorF;   //原點校正
             btnEmergencyStop.Visible = TorF;   //緊急停止
             btnDisConnect.Visible = TorF;      //PLC DisConnect
