@@ -73,6 +73,16 @@ namespace PLC_Control.Properties {
         /// <summary>
         ///   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
         /// </summary>
+        internal static System.Drawing.Bitmap BaseMap {
+            get {
+                object obj = ResourceManager.GetObject("BaseMap", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
+        /// </summary>
         internal static System.Drawing.Bitmap boltun_logo {
             get {
                 object obj = ResourceManager.GetObject("boltun_logo", resourceCulture);
@@ -96,16 +106,6 @@ namespace PLC_Control.Properties {
         internal static System.Drawing.Bitmap forklift__1_ {
             get {
                 object obj = ResourceManager.GetObject("forklift (1)", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   查詢類型 System.Drawing.Bitmap 的當地語系化資源。
-        /// </summary>
-        internal static System.Drawing.Bitmap 底圖 {
-            get {
-                object obj = ResourceManager.GetObject("底圖", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

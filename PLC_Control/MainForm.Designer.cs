@@ -76,7 +76,6 @@
             this.txtSrcPosition = new System.Windows.Forms.TextBox();
             this.txtSrcRegion = new System.Windows.Forms.TextBox();
             this.txtAgvID = new System.Windows.Forms.TextBox();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.txtReceiveServer = new System.Windows.Forms.TextBox();
             this.btnStartServer = new System.Windows.Forms.Button();
             this.btnPause = new System.Windows.Forms.Button();
@@ -121,7 +120,6 @@
             this.lblArduinoPort = new System.Windows.Forms.Label();
             this.lblArduinoBaudRate = new System.Windows.Forms.Label();
             this.btnClearList = new System.Windows.Forms.Button();
-            this.pictureBox_Angle = new System.Windows.Forms.PictureBox();
             this.txtArduinoBaudRate = new System.Windows.Forms.TextBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.txtWPortNumber = new System.Windows.Forms.TextBox();
@@ -150,7 +148,6 @@
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.labelCANStatus = new System.Windows.Forms.Label();
             this.axDBCommManager_Detector = new AxDATABUILDERAXLibLB.AxDBCommManager();
-            this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.tabControl = new System.Windows.Forms.TabControl();
             this.menuStrip_System = new System.Windows.Forms.MenuStrip();
             this.功能ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -165,10 +162,12 @@
             this.ObjectDetectText = new System.Windows.Forms.Label();
             this.button5 = new System.Windows.Forms.Button();
             this.comboBox_MachineType = new System.Windows.Forms.ComboBox();
+            this.pictureBox2 = new System.Windows.Forms.PictureBox();
+            this.pictureBox_Angle = new System.Windows.Forms.PictureBox();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).BeginInit();
             this.tabPage4.SuspendLayout();
             this.groupBox9.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.groupBox7.SuspendLayout();
             this.tabLidar3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.OpenGLCtrl)).BeginInit();
@@ -176,16 +175,17 @@
             this.groupBox3.SuspendLayout();
             this.groupBox6.SuspendLayout();
             this.groupBox8.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_Angle)).BeginInit();
             this.groupBox4.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox5.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.axDBCommManager_Detector)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.tabControl.SuspendLayout();
             this.menuStrip_System.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_Angle)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // monthCalendar1
@@ -651,16 +651,6 @@
             this.txtAgvID.Size = new System.Drawing.Size(71, 22);
             this.txtAgvID.TabIndex = 66;
             this.txtAgvID.Text = "0";
-            // 
-            // pictureBox1
-            // 
-            this.pictureBox1.Image = global::PLC_Control.Properties.Resources.forklift;
-            this.pictureBox1.Location = new System.Drawing.Point(154, 13);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(195, 212);
-            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox1.TabIndex = 64;
-            this.pictureBox1.TabStop = false;
             // 
             // txtReceiveServer
             // 
@@ -1163,15 +1153,6 @@
             this.btnClearList.UseVisualStyleBackColor = true;
             this.btnClearList.Click += new System.EventHandler(this.btnClearList_Click);
             // 
-            // pictureBox_Angle
-            // 
-            this.pictureBox_Angle.Location = new System.Drawing.Point(248, 70);
-            this.pictureBox_Angle.Margin = new System.Windows.Forms.Padding(2);
-            this.pictureBox_Angle.Name = "pictureBox_Angle";
-            this.pictureBox_Angle.Size = new System.Drawing.Size(20, 17);
-            this.pictureBox_Angle.TabIndex = 16;
-            this.pictureBox_Angle.TabStop = false;
-            // 
             // txtArduinoBaudRate
             // 
             this.txtArduinoBaudRate.Font = new System.Drawing.Font("新細明體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
@@ -1489,17 +1470,6 @@
             this.axDBCommManager_Detector.Size = new System.Drawing.Size(24, 24);
             this.axDBCommManager_Detector.TabIndex = 0;
             // 
-            // pictureBox2
-            // 
-            this.pictureBox2.Image = global::PLC_Control.Properties.Resources.forklift__1_;
-            this.pictureBox2.Location = new System.Drawing.Point(-2, 0);
-            this.pictureBox2.Margin = new System.Windows.Forms.Padding(2);
-            this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(572, 162);
-            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox2.TabIndex = 43;
-            this.pictureBox2.TabStop = false;
-            // 
             // tabControl
             // 
             this.tabControl.Controls.Add(this.tabPage1);
@@ -1627,6 +1597,36 @@
             this.comboBox_MachineType.TabIndex = 104;
             this.comboBox_MachineType.SelectionChangeCommitted += new System.EventHandler(this.comboBox_MachineType_SelectionChangeCommitted);
             // 
+            // pictureBox2
+            // 
+            this.pictureBox2.Image = global::PLC_Control.Properties.Resources.forklift__1_;
+            this.pictureBox2.Location = new System.Drawing.Point(-2, 0);
+            this.pictureBox2.Margin = new System.Windows.Forms.Padding(2);
+            this.pictureBox2.Name = "pictureBox2";
+            this.pictureBox2.Size = new System.Drawing.Size(572, 162);
+            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox2.TabIndex = 43;
+            this.pictureBox2.TabStop = false;
+            // 
+            // pictureBox_Angle
+            // 
+            this.pictureBox_Angle.Location = new System.Drawing.Point(248, 70);
+            this.pictureBox_Angle.Margin = new System.Windows.Forms.Padding(2);
+            this.pictureBox_Angle.Name = "pictureBox_Angle";
+            this.pictureBox_Angle.Size = new System.Drawing.Size(20, 17);
+            this.pictureBox_Angle.TabIndex = 16;
+            this.pictureBox_Angle.TabStop = false;
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Image = global::PLC_Control.Properties.Resources.forklift;
+            this.pictureBox1.Location = new System.Drawing.Point(154, 13);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(195, 212);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox1.TabIndex = 64;
+            this.pictureBox1.TabStop = false;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -1663,7 +1663,6 @@
             this.tabPage4.ResumeLayout(false);
             this.groupBox9.ResumeLayout(false);
             this.groupBox9.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.groupBox7.ResumeLayout(false);
             this.groupBox7.PerformLayout();
             this.tabLidar3.ResumeLayout(false);
@@ -1674,7 +1673,6 @@
             this.groupBox6.ResumeLayout(false);
             this.groupBox6.PerformLayout();
             this.groupBox8.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_Angle)).EndInit();
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
             this.tabPage1.ResumeLayout(false);
@@ -1684,10 +1682,12 @@
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.axDBCommManager_Detector)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             this.tabControl.ResumeLayout(false);
             this.menuStrip_System.ResumeLayout(false);
             this.menuStrip_System.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_Angle)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
