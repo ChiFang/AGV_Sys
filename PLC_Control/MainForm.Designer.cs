@@ -76,6 +76,7 @@
             this.txtSrcPosition = new System.Windows.Forms.TextBox();
             this.txtSrcRegion = new System.Windows.Forms.TextBox();
             this.txtAgvID = new System.Windows.Forms.TextBox();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.txtReceiveServer = new System.Windows.Forms.TextBox();
             this.btnStartServer = new System.Windows.Forms.Button();
             this.btnPause = new System.Windows.Forms.Button();
@@ -120,6 +121,7 @@
             this.lblArduinoPort = new System.Windows.Forms.Label();
             this.lblArduinoBaudRate = new System.Windows.Forms.Label();
             this.btnClearList = new System.Windows.Forms.Button();
+            this.pictureBox_Angle = new System.Windows.Forms.PictureBox();
             this.txtArduinoBaudRate = new System.Windows.Forms.TextBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.txtWPortNumber = new System.Windows.Forms.TextBox();
@@ -148,6 +150,7 @@
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.labelCANStatus = new System.Windows.Forms.Label();
             this.axDBCommManager_Detector = new AxDATABUILDERAXLibLB.AxDBCommManager();
+            this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.tabControl = new System.Windows.Forms.TabControl();
             this.menuStrip_System = new System.Windows.Forms.MenuStrip();
             this.功能ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -162,12 +165,19 @@
             this.ObjectDetectText = new System.Windows.Forms.Label();
             this.button5 = new System.Windows.Forms.Button();
             this.comboBox_MachineType = new System.Windows.Forms.ComboBox();
-            this.pictureBox2 = new System.Windows.Forms.PictureBox();
-            this.pictureBox_Angle = new System.Windows.Forms.PictureBox();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.CB_COM_L = new System.Windows.Forms.ComboBox();
+            this.label_RS485 = new System.Windows.Forms.Label();
+            this.label_speed = new System.Windows.Forms.Label();
+            this.btn_speed = new System.Windows.Forms.Button();
+            this.numericUpDown_speed = new System.Windows.Forms.NumericUpDown();
+            this.label_Current_Speed = new System.Windows.Forms.Label();
+            this.label_Current_Speed_Num_L = new System.Windows.Forms.Label();
+            this.label_Current_Speed_Num_R = new System.Windows.Forms.Label();
+            this.CB_COM_R = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).BeginInit();
             this.tabPage4.SuspendLayout();
             this.groupBox9.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.groupBox7.SuspendLayout();
             this.tabLidar3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.OpenGLCtrl)).BeginInit();
@@ -175,17 +185,17 @@
             this.groupBox3.SuspendLayout();
             this.groupBox6.SuspendLayout();
             this.groupBox8.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_Angle)).BeginInit();
             this.groupBox4.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox5.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.axDBCommManager_Detector)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.tabControl.SuspendLayout();
             this.menuStrip_System.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_Angle)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_speed)).BeginInit();
             this.SuspendLayout();
             // 
             // monthCalendar1
@@ -218,7 +228,7 @@
             // 
             // btnDirectionBack
             // 
-            this.btnDirectionBack.Location = new System.Drawing.Point(795, 113);
+            this.btnDirectionBack.Location = new System.Drawing.Point(795, 101);
             this.btnDirectionBack.Margin = new System.Windows.Forms.Padding(2);
             this.btnDirectionBack.Name = "btnDirectionBack";
             this.btnDirectionBack.Size = new System.Drawing.Size(70, 33);
@@ -230,7 +240,7 @@
             // 
             // btnDirectionFront
             // 
-            this.btnDirectionFront.Location = new System.Drawing.Point(795, 71);
+            this.btnDirectionFront.Location = new System.Drawing.Point(795, 64);
             this.btnDirectionFront.Margin = new System.Windows.Forms.Padding(2);
             this.btnDirectionFront.Name = "btnDirectionFront";
             this.btnDirectionFront.Size = new System.Drawing.Size(70, 34);
@@ -276,9 +286,9 @@
             // 
             // btnCANMode
             // 
-            this.btnCANMode.Location = new System.Drawing.Point(796, 170);
+            this.btnCANMode.Location = new System.Drawing.Point(796, 138);
             this.btnCANMode.Name = "btnCANMode";
-            this.btnCANMode.Size = new System.Drawing.Size(69, 56);
+            this.btnCANMode.Size = new System.Drawing.Size(69, 31);
             this.btnCANMode.TabIndex = 10;
             this.btnCANMode.Text = "手動模式";
             this.btnCANMode.UseVisualStyleBackColor = true;
@@ -331,7 +341,7 @@
             // btnSetTimeStamp
             // 
             this.btnSetTimeStamp.Font = new System.Drawing.Font("新細明體", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btnSetTimeStamp.Location = new System.Drawing.Point(796, 237);
+            this.btnSetTimeStamp.Location = new System.Drawing.Point(796, 170);
             this.btnSetTimeStamp.Name = "btnSetTimeStamp";
             this.btnSetTimeStamp.Size = new System.Drawing.Size(69, 50);
             this.btnSetTimeStamp.TabIndex = 47;
@@ -651,6 +661,16 @@
             this.txtAgvID.Size = new System.Drawing.Size(71, 22);
             this.txtAgvID.TabIndex = 66;
             this.txtAgvID.Text = "0";
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Image = global::PLC_Control.Properties.Resources.forklift;
+            this.pictureBox1.Location = new System.Drawing.Point(154, 13);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(195, 212);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox1.TabIndex = 64;
+            this.pictureBox1.TabStop = false;
             // 
             // txtReceiveServer
             // 
@@ -1153,6 +1173,15 @@
             this.btnClearList.UseVisualStyleBackColor = true;
             this.btnClearList.Click += new System.EventHandler(this.btnClearList_Click);
             // 
+            // pictureBox_Angle
+            // 
+            this.pictureBox_Angle.Location = new System.Drawing.Point(248, 70);
+            this.pictureBox_Angle.Margin = new System.Windows.Forms.Padding(2);
+            this.pictureBox_Angle.Name = "pictureBox_Angle";
+            this.pictureBox_Angle.Size = new System.Drawing.Size(20, 17);
+            this.pictureBox_Angle.TabIndex = 16;
+            this.pictureBox_Angle.TabStop = false;
+            // 
             // txtArduinoBaudRate
             // 
             this.txtArduinoBaudRate.Font = new System.Drawing.Font("新細明體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
@@ -1470,6 +1499,17 @@
             this.axDBCommManager_Detector.Size = new System.Drawing.Size(24, 24);
             this.axDBCommManager_Detector.TabIndex = 0;
             // 
+            // pictureBox2
+            // 
+            this.pictureBox2.Image = global::PLC_Control.Properties.Resources.forklift__1_;
+            this.pictureBox2.Location = new System.Drawing.Point(-2, 0);
+            this.pictureBox2.Margin = new System.Windows.Forms.Padding(2);
+            this.pictureBox2.Name = "pictureBox2";
+            this.pictureBox2.Size = new System.Drawing.Size(572, 162);
+            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBox2.TabIndex = 43;
+            this.pictureBox2.TabStop = false;
+            // 
             // tabControl
             // 
             this.tabControl.Controls.Add(this.tabPage1);
@@ -1575,12 +1615,13 @@
             // 
             // button5
             // 
-            this.button5.Location = new System.Drawing.Point(796, 298);
+            this.button5.Location = new System.Drawing.Point(796, 222);
             this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(69, 56);
+            this.button5.Size = new System.Drawing.Size(69, 27);
             this.button5.TabIndex = 10;
             this.button5.Text = "修改資料";
             this.button5.UseVisualStyleBackColor = true;
+            this.button5.Visible = false;
             this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
             // comboBox_MachineType
@@ -1591,47 +1632,110 @@
             "中型車",
             "小型車",
             "其他車"});
-            this.comboBox_MachineType.Location = new System.Drawing.Point(796, 360);
+            this.comboBox_MachineType.Location = new System.Drawing.Point(796, 255);
             this.comboBox_MachineType.Name = "comboBox_MachineType";
             this.comboBox_MachineType.Size = new System.Drawing.Size(80, 20);
             this.comboBox_MachineType.TabIndex = 104;
             this.comboBox_MachineType.SelectionChangeCommitted += new System.EventHandler(this.comboBox_MachineType_SelectionChangeCommitted);
             // 
-            // pictureBox2
+            // CB_COM_L
             // 
-            this.pictureBox2.Image = global::PLC_Control.Properties.Resources.forklift__1_;
-            this.pictureBox2.Location = new System.Drawing.Point(-2, 0);
-            this.pictureBox2.Margin = new System.Windows.Forms.Padding(2);
-            this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(572, 162);
-            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox2.TabIndex = 43;
-            this.pictureBox2.TabStop = false;
+            this.CB_COM_L.FormattingEnabled = true;
+            this.CB_COM_L.Location = new System.Drawing.Point(796, 301);
+            this.CB_COM_L.Name = "CB_COM_L";
+            this.CB_COM_L.Size = new System.Drawing.Size(75, 20);
+            this.CB_COM_L.TabIndex = 106;
             // 
-            // pictureBox_Angle
+            // label_RS485
             // 
-            this.pictureBox_Angle.Location = new System.Drawing.Point(248, 70);
-            this.pictureBox_Angle.Margin = new System.Windows.Forms.Padding(2);
-            this.pictureBox_Angle.Name = "pictureBox_Angle";
-            this.pictureBox_Angle.Size = new System.Drawing.Size(20, 17);
-            this.pictureBox_Angle.TabIndex = 16;
-            this.pictureBox_Angle.TabStop = false;
+            this.label_RS485.AutoSize = true;
+            this.label_RS485.Location = new System.Drawing.Point(795, 288);
+            this.label_RS485.Name = "label_RS485";
+            this.label_RS485.Size = new System.Drawing.Size(37, 12);
+            this.label_RS485.TabIndex = 107;
+            this.label_RS485.Text = "RS485";
             // 
-            // pictureBox1
+            // label_speed
             // 
-            this.pictureBox1.Image = global::PLC_Control.Properties.Resources.forklift;
-            this.pictureBox1.Location = new System.Drawing.Point(154, 13);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(195, 212);
-            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox1.TabIndex = 64;
-            this.pictureBox1.TabStop = false;
+            this.label_speed.AutoSize = true;
+            this.label_speed.Location = new System.Drawing.Point(795, 361);
+            this.label_speed.Name = "label_speed";
+            this.label_speed.Size = new System.Drawing.Size(29, 12);
+            this.label_speed.TabIndex = 108;
+            this.label_speed.Text = "速度";
+            // 
+            // btn_speed
+            // 
+            this.btn_speed.BackColor = System.Drawing.Color.Transparent;
+            this.btn_speed.Location = new System.Drawing.Point(795, 406);
+            this.btn_speed.Name = "btn_speed";
+            this.btn_speed.Size = new System.Drawing.Size(75, 23);
+            this.btn_speed.TabIndex = 109;
+            this.btn_speed.Text = "速度更改";
+            this.btn_speed.UseVisualStyleBackColor = false;
+            this.btn_speed.Click += new System.EventHandler(this.btn_speed_Click);
+            // 
+            // numericUpDown_speed
+            // 
+            this.numericUpDown_speed.Location = new System.Drawing.Point(797, 380);
+            this.numericUpDown_speed.Maximum = new decimal(new int[] {
+            4000,
+            0,
+            0,
+            0});
+            this.numericUpDown_speed.Name = "numericUpDown_speed";
+            this.numericUpDown_speed.Size = new System.Drawing.Size(67, 22);
+            this.numericUpDown_speed.TabIndex = 110;
+            // 
+            // label_Current_Speed
+            // 
+            this.label_Current_Speed.AutoSize = true;
+            this.label_Current_Speed.Location = new System.Drawing.Point(794, 462);
+            this.label_Current_Speed.Name = "label_Current_Speed";
+            this.label_Current_Speed.Size = new System.Drawing.Size(65, 12);
+            this.label_Current_Speed.TabIndex = 111;
+            this.label_Current_Speed.Text = "當前速度：";
+            // 
+            // label_Current_Speed_Num_L
+            // 
+            this.label_Current_Speed_Num_L.AutoSize = true;
+            this.label_Current_Speed_Num_L.Location = new System.Drawing.Point(797, 478);
+            this.label_Current_Speed_Num_L.Name = "label_Current_Speed_Num_L";
+            this.label_Current_Speed_Num_L.Size = new System.Drawing.Size(11, 12);
+            this.label_Current_Speed_Num_L.TabIndex = 111;
+            this.label_Current_Speed_Num_L.Text = "0";
+            // 
+            // label_Current_Speed_Num_R
+            // 
+            this.label_Current_Speed_Num_R.AutoSize = true;
+            this.label_Current_Speed_Num_R.Location = new System.Drawing.Point(797, 494);
+            this.label_Current_Speed_Num_R.Name = "label_Current_Speed_Num_R";
+            this.label_Current_Speed_Num_R.Size = new System.Drawing.Size(11, 12);
+            this.label_Current_Speed_Num_R.TabIndex = 112;
+            this.label_Current_Speed_Num_R.Text = "0";
+            // 
+            // CB_COM_R
+            // 
+            this.CB_COM_R.FormattingEnabled = true;
+            this.CB_COM_R.Location = new System.Drawing.Point(797, 326);
+            this.CB_COM_R.Name = "CB_COM_R";
+            this.CB_COM_R.Size = new System.Drawing.Size(75, 20);
+            this.CB_COM_R.TabIndex = 113;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(885, 532);
+            this.Controls.Add(this.CB_COM_R);
+            this.Controls.Add(this.label_Current_Speed_Num_R);
+            this.Controls.Add(this.label_Current_Speed_Num_L);
+            this.Controls.Add(this.label_Current_Speed);
+            this.Controls.Add(this.numericUpDown_speed);
+            this.Controls.Add(this.btn_speed);
+            this.Controls.Add(this.label_speed);
+            this.Controls.Add(this.label_RS485);
+            this.Controls.Add(this.CB_COM_L);
             this.Controls.Add(this.comboBox_MachineType);
             this.Controls.Add(this.ObjectDetectText);
             this.Controls.Add(this.panelDebug);
@@ -1663,6 +1767,7 @@
             this.tabPage4.ResumeLayout(false);
             this.groupBox9.ResumeLayout(false);
             this.groupBox9.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.groupBox7.ResumeLayout(false);
             this.groupBox7.PerformLayout();
             this.tabLidar3.ResumeLayout(false);
@@ -1673,6 +1778,7 @@
             this.groupBox6.ResumeLayout(false);
             this.groupBox6.PerformLayout();
             this.groupBox8.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_Angle)).EndInit();
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
             this.tabPage1.ResumeLayout(false);
@@ -1682,12 +1788,11 @@
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.axDBCommManager_Detector)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             this.tabControl.ResumeLayout(false);
             this.menuStrip_System.ResumeLayout(false);
             this.menuStrip_System.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox_Angle)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown_speed)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1828,6 +1933,15 @@
         private System.Windows.Forms.Label ObjectDetectText;
         private System.Windows.Forms.Button button5;
         private System.Windows.Forms.ComboBox comboBox_MachineType;
+        private System.Windows.Forms.ComboBox CB_COM_L;
+        private System.Windows.Forms.Label label_RS485;
+        private System.Windows.Forms.Label label_speed;
+        private System.Windows.Forms.Button btn_speed;
+        private System.Windows.Forms.NumericUpDown numericUpDown_speed;
+        private System.Windows.Forms.Label label_Current_Speed;
+        private System.Windows.Forms.Label label_Current_Speed_Num_L;
+        private System.Windows.Forms.Label label_Current_Speed_Num_R;
+        private System.Windows.Forms.ComboBox CB_COM_R;
     }
 }
 

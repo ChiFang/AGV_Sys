@@ -12,6 +12,8 @@
 
 using System;
 using Others;
+using PLC_Control;
+using System.Threading;
 
 
 namespace AlgorithmTool
@@ -164,9 +166,22 @@ namespace AlgorithmTool
         /// <summary> stop all action of motor </summary>
         public void StopCar()
         {
-            lMotorPower = 0;
-            lMotorTorsion = 0;
-            lMotorAngle = 0;
+            if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)
+            {
+                lMotorPower = 0;
+                lMotorTorsion = 0;
+                lMotorAngle = 0;
+            }
+            else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+            {
+            }
+            else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)
+            {
+                MainForm.SCarMoveStop(1);
+            }
+            else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+            {
+            }
         }
 
         /// <summary> Clear Data of turn like radius and center </summary>
@@ -282,6 +297,11 @@ namespace AlgorithmTool
         /** \brief Output Data: 預測error   */
         public double ePredictErrorTest = 0;
 
+
+        Ini PLC_Ini = new Ini();
+
+        //rtAGV_Control DeliverDataPLC;
+
         /// <summary> test function for coordinate predict </summary>
         /// <param name="a_tCarData">[IN] car data information </param>
         /// <param name="a_CMotorInfo">[IN] motor control class </param>
@@ -311,6 +331,11 @@ namespace AlgorithmTool
             tMotorData.Init();
 
             bAlignmentCarAngleMatch = false;
+
+            //DeliverData =  rtAGV_Control ;
+            //
+            //.Read_ini_Cfg2();
+            
         }
 
         /// <summary> distance error calculate during Straight mode </summary>
@@ -1125,12 +1150,15 @@ namespace AlgorithmTool
             bAlignmentCarAngleMatch = false;
         }
 
+        int PLC_Moter_Ctrl = 2;
+        //double aaa = 0;
         /// <summary> Car direction Alignment  </summary>
         /// <param name="a_eTargetAngle">[IN] Target Angle of car </param>
         /// <param name="a_tCarData">[IN] car data </param>
         /// <returns> true: finish false: not yet </returns>
         public bool CarAngleAlignment(double a_eTargetAngle, rtCarData a_tCarData)
         {
+
             bool bMatched = false;
             double eAngleError = 0;
             double eAngleDelay = 0; // 確認輪胎有轉到90度
@@ -1141,6 +1169,9 @@ namespace AlgorithmTool
                 bAlignmentCarAngleMatch = true; // 代表已轉正 >>正在迴正輪胎
                 tMotorData.lMotorPower = 0;
                 tMotorData.lMotorAngle = 0;
+
+                //PLC_Moter_Ctrl = 0;
+
 
                 // 車輪轉回0度才結束
                 if (Math.Abs(a_tCarData.eWheelAngle) < ANGLE_MATCH_TH)
@@ -1163,21 +1194,37 @@ namespace AlgorithmTool
                 {
                     tMotorData.lMotorAngle = -ANGLE_ROTATION;
                 }
-                eAngleDelay = tMotorData.lMotorAngle - a_tCarData.eWheelAngle;
-                if (Math.Abs(eAngleDelay) < ANGLE_MATCH_TH)
+
+                if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)//大車判斷
                 {
-                    if (Math.Abs(eAngleError) > ALIGNMENT_SPEED_ANGLE_TH)
+                    eAngleDelay = tMotorData.lMotorAngle - a_tCarData.eWheelAngle;
+
+                    //Console.Write("eWheelAngle:" + a_tCarData.eWheelAngle);
+                    if (Math.Abs(eAngleDelay) < ANGLE_MATCH_TH)
                     {
-                        tMotorData.lMotorPower = TURN_POWER;
+                        if (Math.Abs(eAngleError) > ALIGNMENT_SPEED_ANGLE_TH)
+                        {
+                            tMotorData.lMotorPower = TURN_POWER;
+                        }
+                        else
+                        {
+                            tMotorData.lMotorPower = MIN_POWER;
+                        }
                     }
                     else
                     {
-                        tMotorData.lMotorPower = MIN_POWER;
+                        tMotorData.lMotorPower = 0;
                     }
                 }
-                else
+                else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+                { 
+                }
+                else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)//小車判斷
                 {
-                    tMotorData.lMotorPower = 0;
+                    MainForm.CarMove("Clockwise");
+                }
+                else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)//小車判斷
+                {
                 }
                 bMatched = false;
             }

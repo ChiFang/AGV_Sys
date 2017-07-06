@@ -29,18 +29,27 @@ namespace PLC_Control
 {
     public partial class MainForm : Form
     {
+        //double aaa,bbb,ccc;
         public MainForm()
         {
             InitializeComponent();
             obj_PLC = new ObjectPLC_KV();
             obj_PLC.axDBCommManager = axDBCommManager_Detector;
             //堆高機初始設定
-            
-            Text_Debug.CheckConfig();
+
+
+            Form.CheckForIllegalCrossThreadCalls = false;
+            thread_DataShows_L = new Thread(DataShows_L); //啟動Thread        資料顯示
+            thread_ASK_speed_L = new Thread(ASK_speed_L);
+
+            thread_DataShows_R = new Thread(DataShows_R); //啟動Thread        資料顯示
+            thread_ASK_speed_R = new Thread(ASK_speed_R);
         }
+        Thread thread_DataShows_L, thread_ASK_speed_L;
+        Thread thread_DataShows_R, thread_ASK_speed_R;
 
         #region FormFunction
-
+        String[] COMPorts = SerialPort.GetPortNames();
         private void Form1_Load(object sender, EventArgs e)
         {
             Lidar.Init();
@@ -72,20 +81,226 @@ namespace PLC_Control
 
             panelDebug.Visible = false;
 
-            comboBox_MachineType.SelectedIndex = Main_Ini.MACHINE_TYPE;
-            DeliverData.rtAGV_Chang_Type_Self_Carriage(Main_Ini.MACHINE_TYPE+1);
+            comboBox_MachineType.SelectedIndex = Main_Ini.MACHINE_TYPE;             //車種
+            comboBox_MachineType_Num = Main_Ini.MACHINE_TYPE;                       //將車種紀錄至分類
+            DeliverData.rtAGV_Chang_Type_Self_Carriage(Main_Ini.MACHINE_TYPE);    //
 
             ForkliftControl_Init();
             ForkliftControl_Enabled(false);
 
+
+            //右輪正轉
+            SendData_right_Forward[0] = 0x01;
+            SendData_right_Forward[1] = 0x06;
+            SendData_right_Forward[2] = 0x00;
+            SendData_right_Forward[3] = 0x7D;
+            SendData_right_Forward[4] = 0x00;
+            SendData_right_Forward[5] = 0x10;
+            byte[] byteArray_right_Forward = BitConverter.GetBytes(ModRTU_CRC(SendData_right_Forward, 6));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_right_Forward[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_right_Forward[1], 16));
+            SendData_right_Forward[6] = byteArray_right_Forward[0];
+            SendData_right_Forward[7] = byteArray_right_Forward[1];
+
+
+            //右輪反轉
+            SendData_right_Back[0] = 0x01;
+            SendData_right_Back[1] = 0x06;
+            SendData_right_Back[2] = 0x00;
+            SendData_right_Back[3] = 0x7D;
+            SendData_right_Back[4] = 0x00;
+            SendData_right_Back[5] = 0x08;
+            byte[] byteArray_right_Back = BitConverter.GetBytes(ModRTU_CRC(SendData_right_Back, 6));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_right_Back[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_right_Back[1], 16));
+            SendData_right_Back[6] = byteArray_right_Back[0];
+            SendData_right_Back[7] = byteArray_right_Back[1];
+
+
+            //左輪正轉
+            SendData_left_Forward[0] = 0x01;
+            SendData_left_Forward[1] = 0x06;
+            SendData_left_Forward[2] = 0x00;
+            SendData_left_Forward[3] = 0x7D;
+            SendData_left_Forward[4] = 0x00;
+            SendData_left_Forward[5] = 0x10;
+            byte[] byteArray_left_Forward = BitConverter.GetBytes(ModRTU_CRC(SendData_left_Forward, 6));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_left_Forward[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_left_Forward[1], 16));
+            SendData_left_Forward[6] = byteArray_left_Forward[0];
+            SendData_left_Forward[7] = byteArray_left_Forward[1];
+
+
+            //左輪反轉
+            SendData_left_Back[0] = 0x01;
+            SendData_left_Back[1] = 0x06;
+            SendData_left_Back[2] = 0x00;
+            SendData_left_Back[3] = 0x7D;
+            SendData_left_Back[4] = 0x00;
+            SendData_left_Back[5] = 0x08;
+            byte[] byteArray_left_Back = BitConverter.GetBytes(ModRTU_CRC(SendData_left_Back, 6));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_left_Back[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_left_Back[1], 16));
+            SendData_left_Back[6] = byteArray_left_Back[0];
+            SendData_left_Back[7] = byteArray_left_Back[1];
+
+
+
             //小車馬達連線
-            comport = new SerialPort("COM4", 9600, Parity.None, 8, StopBits.One);
-            if (!comport.IsOpen)
+            CB_COM_L.Items.Clear();
+            foreach (string port in COMPorts) { CB_COM_L.Items.Add(port); }
+            CB_COM_L.Text = COMPorts[4];
+
+            //小車馬達連線
+            CB_COM_R.Items.Clear();
+            foreach (string port in COMPorts) { CB_COM_R.Items.Add(port); }
+            CB_COM_R.Text = COMPorts[3];
+        }
+
+
+
+
+
+        int Auto_YorN_All = 1;// CW_ASK = 0;
+        static int Speed_ASK_L = 0,Speed_ASK_R = 0;
+
+        private void DataShows_L()
+        {
+            
+            while (Auto_YorN_All == 1)
             {
-                comport.Open();
+                //TFrontCenterLocation.
+                RS232_DataReceived_L();
+                Thread.Sleep(10);
+            }
+        }
+
+        private void ASK_speed_L()
+        {          
+            while (Auto_YorN_All == 1)
+            {
+                if (Speed_ASK_L == 1)
+                {
+                    SCarGET_speed_L(); //詢問當下速度
+                    Thread.Sleep(10);
+                }
+            }
+        }
+
+        private void DataShows_R()
+        {
+            while (Auto_YorN_All == 1)
+            {
+                RS232_DataReceived_R();
+                Thread.Sleep(10);
+            }
+        }
+
+        private void ASK_speed_R()
+        {
+            while (Auto_YorN_All == 1)
+            {
+                if (Speed_ASK_R == 1)
+                {
+                    SCarGET_speed_R(); //詢問當下速度
+                    Thread.Sleep(10);
+                }
+            }
+        }
+
+        string[] ReadData;
+
+
+        private void RS232_DataReceived_L()
+        {
+            byte[] ReadBytes = new byte[comport_L.BytesToRead];
+            if (ReadBytes.Length < 8)
+            {
+                return;
+            }
+            int ReadCount = comport_L.Read(ReadBytes, 0, comport_L.BytesToRead);
+            /*if (comport_L.BytesToRead == 0)
+            {
+                return;
+            }*/
+            /*Console.Write("Recieve : ");
+            for (int i = 0; i < ReadBytes.Length; i++)
+            {
+
+                if (i != ReadBytes.Length - 1)
+                    Console.Write(" {0}", Convert.ToString(ReadBytes[i], 16));
+                else
+                    Console.WriteLine(" {0}", Convert.ToString(ReadBytes[i], 16));
+            }*/
+
+            ReadData = new string[ReadBytes.Length];
+            //int[] Readint = new int[ReadBytes.Length];
+            int aa = 0;
+
+            for (int j = 0; j < ReadBytes.Length; j++)
+            {
+                ReadData[aa] = Convert.ToString(ReadBytes[j], 16);
+                aa++;
             }
 
-            
+            if (Speed_ASK_L == 1) //詢問速度才需要
+            {
+                string speed = ReadData[5] + ReadData[6];
+                int speed_L = Convert.ToInt16(speed, 16);
+                label_Current_Speed_Num_L.Text = speed_L.ToString();
+                numericUpDown_speed_L = speed_L;
+                numericUpDown_speed.Value = speed_L;
+
+                DeliverData.SModifySpeed(speed_L, 1); //修改速度
+                Speed_ASK_L = 0;
+                Thread.Sleep(10);
+            }
+        }
+
+        private void RS232_DataReceived_R()
+        {
+            byte[] ReadBytes = new byte[comport_R.BytesToRead];
+            if (ReadBytes.Length < 8)
+            {
+                return;
+            }
+            int ReadCount = comport_R.Read(ReadBytes, 0, comport_R.BytesToRead);
+            /*if (comport_R.BytesToRead == 0)
+            {
+                return;
+            }*/
+            /*Console.Write("Recieve : ");
+            for (int i = 0; i < ReadBytes.Length; i++)
+            {
+
+                if (i != ReadBytes.Length - 1)
+                    Console.Write(" {0}", Convert.ToString(ReadBytes[i], 16));
+                else
+                    Console.WriteLine(" {0}", Convert.ToString(ReadBytes[i], 16));
+            }*/
+
+            ReadData = new string[ReadBytes.Length];
+            //int[] Readint = new int[ReadBytes.Length];
+            int aa = 0;
+
+            for (int j = 0; j < ReadBytes.Length; j++)
+            {
+                ReadData[aa] = Convert.ToString(ReadBytes[j], 16);
+                aa++;
+            }
+
+            if (Speed_ASK_R == 1) //詢問速度才需要
+            {
+                string speed = ReadData[5] + ReadData[6];
+                int speed_R = Convert.ToInt16(speed, 16);
+                label_Current_Speed_Num_R.Text = speed_R.ToString();
+                numericUpDown_speed_R = speed_R;
+
+                DeliverData.SModifySpeed(speed_R, 2); //修改速度
+                Speed_ASK_R = 0;
+                Thread.Sleep(10);
+                //Console.WriteLine(aaa);
+            }
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -105,6 +320,7 @@ namespace PLC_Control
             Main_Ini.Save_ini_Cfg();
             //關閉程式
             Text_Debug.SaveConfig();
+            Auto_YorN_All = 0;
             Process.GetCurrentProcess().Kill();
             Application.Exit();
         }
@@ -116,8 +332,12 @@ namespace PLC_Control
             btnSendL.Enabled = TorF;           //順時針
             btnOrigin.Enabled = TorF;          //原點復歸
             btnRelaxMotor.Enabled = TorF;      //放掉馬達
+
             btnMoveFront.Enabled = TorF;       //前進
             brnMoveBack.Enabled = TorF;        //後退
+            btn_speed.Enabled = TorF;
+            numericUpDown_speed.Enabled = TorF;
+
             btnClibratOrigin.Enabled = TorF;   //原點校正
             btnEmergencyStop.Enabled = TorF;   //緊急停止
             btnDisConnect.Enabled = TorF;      //PLC DisConnect
@@ -148,81 +368,161 @@ namespace PLC_Control
             button4.Enabled = TorF;             //RunDown4
         }
 
-        public void ForkliftControl_Visible(bool TorF)
+        public void ForkliftControl_Visible()
         {
-            btnCanConnect.Visible = TorF;       //
+            if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)
+            {
+                btnCanConnect.Visible = true;       //
+                groupBox5.Visible = true;       //
+                label_Path.Visible = true;       //
+                label_PLCConnect.Visible = true;       //開啟CAN
+                btnOpenCan.Visible = true;         //開啟CAN
 
-            groupBox5.Visible = TorF;       //
-            label_Path.Visible = TorF;       //
+                btnOrigin.Visible = true;          //原點復歸
+                btnRelaxMotor.Visible = true;      //放掉馬達
 
-            btnOpenCan.Visible = TorF;         //開啟CAN
-            btnSendR.Visible = TorF;           //逆時針
-            btnSendL.Visible = TorF;           //順時針
-            btnOrigin.Visible = TorF;          //原點復歸
-            btnRelaxMotor.Visible = TorF;      //放掉馬達
-            //btnMoveFront.Visible = TorF;       //前進
-            //brnMoveBack.Visible = TorF;        //後退
-            btnClibratOrigin.Visible = TorF;   //原點校正
-            btnEmergencyStop.Visible = TorF;   //緊急停止
-            btnDisConnect.Visible = TorF;      //PLC DisConnect
-            btnClutch.Visible = TorF;          //離合器
-            btnBrakes.Visible = TorF;          //煞車
+                btnClibratOrigin.Visible = true;   //原點校正
+                btnClibratOrigin.Text = "原點校正";
+                btnEmergencyStop.Visible = true;   //緊急停止
+                btnDisConnect.Visible = true;      //PLC DisConnect
+                btnClutch.Visible = true;          //離合器
+                btnBrakes.Visible = true;          //煞車
 
-            //貨叉控制
-            btnUp.Visible = TorF;       //上
-            btnFront.Visible = TorF;    //前
-            btnOblique.Visible = TorF;  //上傾斜
-            btnLeft.Visible = TorF;     //左
-            btnDown.Visible = TorF;     //下
-            btnBack.Visible = TorF;     //後
-            btnSloping.Visible = TorF;  //下傾斜
-            btnRight.Visible = TorF;    //右
+                //貨叉控制
+                btnUp.Visible = true;       //上
+                btnFront.Visible = true;    //前
+                btnOblique.Visible = true;  //上傾斜
+                btnLeft.Visible = true;     //左
+                btnDown.Visible = true;     //下
+                btnBack.Visible = true;     //後
+                btnSloping.Visible = true;  //下傾斜
+                btnRight.Visible = true;    //右
 
-            //SICK狀態
-            btnNAVDisConnect.Visible = TorF;    //斷線
-            btn_Mode_Navigation.Visible = TorF; //Navigation
-            btnContinueLocation.Visible = TorF; //連續座標
-            btnStartServer.Visible = TorF;      //Server連線
-            btnContinue.Visible = TorF;         //繼續
-            btnPause.Visible = TorF;            //暫停
-            btnDoCmd.Visible = TorF;            //執行
-            button1.Visible = TorF;             //RunDown1
-            button2.Visible = TorF;             //RunDown2
-            button3.Visible = TorF;             //RunDown3
-            button4.Visible = TorF;             //RunDown4
+                //SICK狀態
+                btnNAVDisConnect.Visible = true;    //斷線
+                btn_Mode_Navigation.Visible = true; //Navigation
+                btnContinueLocation.Visible = true; //連續座標
+                btnStartServer.Visible = true;      //Server連線
+                btnContinue.Visible = true;         //繼續
+                btnPause.Visible = true;            //暫停
+                btnDoCmd.Visible = true;            //執行
+                button1.Visible = true;             //RunDown1
+                button2.Visible = true;             //RunDown2
+                button3.Visible = true;             //RunDown3
+                button4.Visible = true;             //RunDown4
+
+                btnSendR.Visible = true;           //逆時針
+                btnSendL.Visible = true;           //順時針
+                btnMoveFront.Visible = true;       //前進
+                brnMoveBack.Visible = true;        //後退
+
+                label_speed.Visible = false;
+                btn_speed.Visible = false;        //
+                CB_COM_L.Visible = false;        //
+                CB_COM_R.Visible = false;        //
+                label_RS485.Visible = false;        // 
+                numericUpDown_speed.Visible = false;        // 
+                label_Current_Speed.Visible = false;        // 
+                label_Current_Speed_Num_L.Visible = false;        // 
+                label_Current_Speed_Num_R.Visible = false;        // 
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+            {
+
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)
+            {
+                btnCanConnect.Visible = false;       //
+                groupBox5.Visible = false;       //
+                label_Path.Visible = false;       //
+                label_PLCConnect.Visible = false;       //開啟CAN
+                btnOpenCan.Visible = false;         //開啟CAN
+
+                btnOrigin.Visible = false;          //原點復歸
+                btnRelaxMotor.Visible = false;      //放掉馬達
+
+                btnClibratOrigin.Visible = true;   //原點校正
+                btnClibratOrigin.Text = "儲存馬達資料至NV記憶體";
+                btnEmergencyStop.Visible = true;   //緊急停止
+                btnDisConnect.Visible = false;      //PLC DisConnect
+                btnClutch.Visible = false;          //離合器
+                btnBrakes.Visible = false;          //煞車
+
+                //貨叉控制
+                btnUp.Visible = false;       //上
+                btnFront.Visible = false;    //前
+                btnOblique.Visible = false;  //上傾斜
+                btnLeft.Visible = false;     //左
+                btnDown.Visible = false;     //下
+                btnBack.Visible = false;     //後
+                btnSloping.Visible = false;  //下傾斜
+                btnRight.Visible = false;    //右
+
+                //SICK狀態
+                btnNAVDisConnect.Visible = true;    //斷線
+                btn_Mode_Navigation.Visible = true; //Navigation
+                btnContinueLocation.Visible = true; //連續座標
+                btnStartServer.Visible = true;      //Server連線
+                btnContinue.Visible = true;         //繼續
+                btnPause.Visible = true;            //暫停
+                btnDoCmd.Visible = true;            //執行
+                button1.Visible = true;             //RunDown1
+                button2.Visible = true;             //RunDown2
+                button3.Visible = true;             //RunDown3
+                button4.Visible = true;             //RunDown4
+
+                btnSendR.Visible = true;           //逆時針
+                btnSendL.Visible = true;           //順時針
+                btnMoveFront.Visible = true;       //前進
+                brnMoveBack.Visible = true;        //後退
+
+                label_speed.Visible = true;
+                btn_speed.Visible = true;        //
+                CB_COM_L.Visible = true;        //
+                CB_COM_R.Visible = true;        //
+                label_RS485.Visible = true;        // 
+
+                numericUpDown_speed.Visible = true;        // 
+                label_Current_Speed.Visible = true;        // 
+                label_Current_Speed_Num_L.Visible = true;        // 
+                label_Current_Speed_Num_R.Visible = true;        // 
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+            {
+
+            }
         }
         
 
         public void ForkliftControl_Init()
         {
-            if (comboBox_MachineType.SelectedIndex == 0)
+            ForkliftControl_Visible();
+            /*if (comboBox_MachineType_Num == 0)
             {
                 //堆高機控制
-                ForkliftControl_Visible(true);
-                
+                ForkliftControl_Visible(); 
             }
-            else if (comboBox_MachineType.SelectedIndex == 1)
+            else if (comboBox_MachineType_Num == 1)
             {
 
 
             }
-            else if (comboBox_MachineType.SelectedIndex == 2)
+            else if (comboBox_MachineType_Num == 2)
             {
                 //小車控制
                 //ForkliftControl_Enabled(false);
-                ForkliftControl_Visible(false);
+                ForkliftControl_Visible();
 
             }
-            else if (comboBox_MachineType.SelectedIndex == 3)
+            else if (comboBox_MachineType_Num == 3)
             {
 
-            }
+            }*/
         }
-
 
         public void ForkliftControl_CanBusConnection()
         {
-            if (comboBox_MachineType.SelectedIndex == 0)
+            if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)
             {
                 Connection_Control_CanBus = true;   //CanBus開啟成功
 
@@ -237,15 +537,15 @@ namespace PLC_Control
                     btnEmergencyStop.Enabled = true;   //緊急停止
                 }
             }
-            else if (comboBox_MachineType.SelectedIndex == 1)
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
             {
 
             }
-            else if (comboBox_MachineType.SelectedIndex == 2)
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)
             {
 
             }
-            else if (comboBox_MachineType.SelectedIndex == 3)
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
             {
 
             }
@@ -253,9 +553,7 @@ namespace PLC_Control
 
         public void ForkliftControl_PLCConnection()
         {
-            
-
-            if (comboBox_MachineType.SelectedIndex == 0)
+            if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)
             {
                 Connection_Control_PLC = true;  //PLC連線成功
 
@@ -278,25 +576,19 @@ namespace PLC_Control
                     btnClibratOrigin.Enabled = true;   //原點校正
                     btnEmergencyStop.Enabled = true;   //緊急停止
                 }
-
             }
-            else if (comboBox_MachineType.SelectedIndex == 1)
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
             {
 
             }
-            else if (comboBox_MachineType.SelectedIndex == 2)
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)
             {
 
             }
-            else if (comboBox_MachineType.SelectedIndex == 3)
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
             {
 
-            }
-
-
-            
-            
-            
+            }   
         }
 
         #endregion
@@ -375,7 +667,7 @@ namespace PLC_Control
 
         Ini Main_Ini = new Ini();
 
-        SerialPort comport;//小車馬達用
+        static SerialPort comport_L, comport_R;//小車馬達用
 
         #endregion
 
@@ -405,41 +697,82 @@ namespace PLC_Control
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
-            if (obj_PLC.checkConnect(true, false) == true)
+            if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)
             {
-                MessageBox.Show("已連線");
-                return;
-            }
-            else
-            {
-                //未連線，進行連線
-                if (obj_PLC.doMoniter() == false)
+                comport_L = new SerialPort(CB_COM_L.Text, 19200, Parity.Even, 8, StopBits.One);
+                comport_R = new SerialPort(CB_COM_R.Text, 19200, Parity.Even, 8, StopBits.One);
+                if (!comport_L.IsOpen && !comport_R.IsOpen)
                 {
+                    try
+                    {
+                        comport_L.Open();
+                        comport_R.Open();
+                        thread_DataShows_L.Start();
+                        thread_ASK_speed_L.Start();
+
+                        thread_DataShows_R.Start();
+                        thread_ASK_speed_R.Start();
+
+                        CanConnect_Status = 1;
+                        btn_speed.Enabled = true;
+                        btnMoveFront.Enabled = true;
+                        brnMoveBack.Enabled = true;
+                        btnSendR.Enabled = true;
+                        btnSendL.Enabled = true;
+                        btnClibratOrigin.Enabled = true;
+                        numericUpDown_speed.Enabled = true;
+                        btnEmergencyStop.Enabled = true;
+                        btnConnect.Enabled = false;
+                        CB_COM_L.Enabled = false;
+                        CB_COM_R.Enabled = false;
+                        comboBox_MachineType.Enabled = false;
+                        Speed_ASK_L = 1;
+                        Speed_ASK_R = 1;
+                    }
+                    catch
+                    {
+                        MessageBox.Show("打開裝置失敗,請檢察", "錯誤",
+                                 MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    }
+                }
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)
+            {
+                if (obj_PLC.checkConnect(true, false) == true)
+                {
+                    MessageBox.Show("已連線");
                     return;
                 }
-                GlobalVar.isPLCConnect = true;
-
-                if (TimerReceivePLC_Data.Enabled == false)//開啟讀取PLC資料
+                else
                 {
-                    if (TimerReceivePLC_Data.Interval != 30)
+                    //未連線，進行連線
+                    if (obj_PLC.doMoniter() == false)
                     {
-                        TimerReceivePLC_Data.Interval = 30;
-                        TimerReceivePLC_Data.Elapsed += new System.Timers.ElapsedEventHandler(ReadPLC_Data);
+                        return;
                     }
-                    TimerReceivePLC_Data.Enabled = true;
-                }
-                btnConnect.BackColor = System.Drawing.Color.Red;
+                    GlobalVar.isPLCConnect = true;
 
-                //PLC連線成功(開啟可使用的按鈕)
-                ForkliftControl_PLCConnection();
+                    if (TimerReceivePLC_Data.Enabled == false)//開啟讀取PLC資料
+                    {
+                        if (TimerReceivePLC_Data.Interval != 30)
+                        {
+                            TimerReceivePLC_Data.Interval = 30;
+                            TimerReceivePLC_Data.Elapsed += new System.Timers.ElapsedEventHandler(ReadPLC_Data);
+                        }
+                        TimerReceivePLC_Data.Enabled = true;
+                    }
+                    btnConnect.BackColor = System.Drawing.Color.Red;
+                    comboBox_MachineType.Enabled = false;
+
+                    //PLC連線成功(開啟可使用的按鈕)
+                    ForkliftControl_PLCConnection();
+                }
             }
         }
 
         private void ReadPLC_Data(object sender, EventArgs e)
         {
-            if (GlobalVar.islibratOrigin) return;
-            if (DeliverData.tAGV_Data.ucAGV_Status != 0) return;
-            GetFrontWheelSpeed();
+
         }
 
         private void btnDisConnect_Click(object sender, EventArgs e)
@@ -462,62 +795,224 @@ namespace PLC_Control
         {
             if (btnEmergencyStop.Text == "緊急停止")
             {
-                //放油門
-                MoveStop();
+                if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)//大型車
+                {
+                    //放油門
+                    MoveStop();
 
-                //按剎車
-                obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "5", 1600);
-                obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "7", 1400);
+                    //按剎車
+                    obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "5", 1600);
+                    obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "7", 1400);
 
-                //結束DeliverThread執行緒
-                if (DeliverThread != null)
-                    DeliverThread.Abort();
+                    //結束DeliverThread執行緒
+                    if (DeliverThread != null)
+                        DeliverThread.Abort();
 
-                //解除自動駕駛
-                btnEmergencyStop.Text = "解除狀態";
-                btnEmergencyStop.BackColor = System.Drawing.Color.Red;
-                TimerSetForkHeight.Enabled = false;
-                DeliverFlowTimer.Enabled = false;
-                obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "1", 2000);//貨插-停
-                obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_MR, "111", 1);
+                    //解除自動駕駛
+                    btnEmergencyStop.Text = "解除狀態";
+                    btnEmergencyStop.BackColor = System.Drawing.Color.Red;
+                    TimerSetForkHeight.Enabled = false;
+                    DeliverFlowTimer.Enabled = false;
+                    obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "1", 2000);//貨插-停
+                    obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_MR, "111", 1);
+                }
+                else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+                {
+
+                }
+                else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)//小型車
+                {
+                    SCarMoveStop(1);    //MoveStop();
+                    btnEmergencyStop.Text = "解除狀態";
+                    btnEmergencyStop.BackColor = System.Drawing.Color.Red;
+                    //TimerSetForkHeight.Enabled = false;
+                    DeliverFlowTimer.Enabled = false;
+                }
+                else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+                {
+                }
             }
-            else
+            else //解除狀態
             {
-                //放煞車
-                obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "5", 400);
-                obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "7", 3600);
-                obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_MR, "111", 0);
-                btnEmergencyStop.Text = "緊急停止";
-                btnEmergencyStop.BackColor = SystemColors.Control;
+                if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)//大型車
+                {
+                    //放煞車
+                    obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "5", 400);
+                    obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "7", 3600);
+                    obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_MR, "111", 0);
+                    btnEmergencyStop.Text = "緊急停止";
+                    btnEmergencyStop.BackColor = SystemColors.Control;
+                }
+                else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+                {
+
+                }
+                else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)//小型車
+                {
+                    SCarMoveStop(1);
+                    btnEmergencyStop.Text = "緊急停止";
+                    btnEmergencyStop.BackColor = SystemColors.Control;
+                    DeliverFlowTimer.Enabled = true;
+                }
+                else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+                {
+
+                }
+            }
+        }
+        
+
+        private void btnSendR_MouseDown(object sender, MouseEventArgs e) //壓下逆時針轉
+        {
+            if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)//大型車
+            {
+                btnSendR.BackColor = System.Drawing.Color.LightGreen;
+                //CanBusFunc.CANBUS_TurnRight = true;
+                AdvBusFunc.CANBUS_TurnRight = true; 
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+            {
+
+
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)//小型車
+            {
+
+                CarMove("Counterclockwise");//逆
+
+                //SCarCounterclockwise((int)numericUpDown_speed.Value, -(int)numericUpDown_speed.Value,0);
+
+                //DataCCW(1, 1);
+                /*DataCCW(2, 1);
+                SCarDataConfiguration();
+
+                SendData_All[0] = 0x00;
+                SendData_All[1] = 0x06;
+                SendData_All[2] = 0x00;
+                SendData_All[3] = 0x7D;
+                SendData_All[4] = 0x00;
+                SendData_All[5] = 0x10;
+                byte[] byteArray_right = BitConverter.GetBytes(ModRTU_CRC(SendData_All, 6));
+                Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[0], 16));
+                Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[1], 16));
+                SendData_All[6] = byteArray_right[0];
+                SendData_All[7] = byteArray_right[1];
+                comport.Write(SendData_All, 0, SendData_All.Length);*/
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+            {
+
+            }          
+        }
+
+        private void btnSendR_MouseUp(object sender, MouseEventArgs e) //放開逆時針轉
+        {
+            if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)//大型車
+            {
+                btnSendR.BackColor = SystemColors.Control;
+                //CanBusFunc.CANBUS_TurnRight = false;
+                AdvBusFunc.CANBUS_TurnRight = false;
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+            {
+
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)//小型車
+            {
+                SCarMoveStop(1);
+                /*SendData_All[0] = 0x00;
+                SendData_All[1] = 0x06;
+                SendData_All[2] = 0x00;
+                SendData_All[3] = 0x7D;
+                SendData_All[4] = 0x00;
+                SendData_All[5] = 0x20;
+                byte[] byteArray_right = BitConverter.GetBytes(ModRTU_CRC(SendData_All, 6));
+                Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[0], 16));
+                Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[1], 16));
+                SendData_All[6] = byteArray_right[0];
+                SendData_All[7] = byteArray_right[1];
+                comport.Write(SendData_All, 0, SendData_All.Length);*/
+
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+            {
+
             }
         }
 
-        private void btnSendR_MouseDown(object sender, MouseEventArgs e) //壓下順時針轉
+        private void btnSendL_MouseDown(object sender, MouseEventArgs e) //壓下順時針轉
         {
-            btnSendR.BackColor = System.Drawing.Color.LightGreen;
-            //CanBusFunc.CANBUS_TurnRight = true;
-            AdvBusFunc.CANBUS_TurnRight = true;
+            if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)//大型車
+            {
+                btnSendL.BackColor = System.Drawing.Color.LightGreen;
+                //CanBusFunc.CANBUS_TurnLeft = true;
+                AdvBusFunc.CANBUS_TurnLeft = true;
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+            {
+
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)//小型車
+            {
+                CarMove("Clockwise");//順
+
+
+                //SCarClockwise(-(int)numericUpDown_speed.Value, (int)numericUpDown_speed.Value,0);
+                //DataCCW(1, 1);
+                /*DataCCW(2, 1);
+                SCarDataConfiguration();
+
+                SendData_All[0] = 0x00;
+                SendData_All[1] = 0x06;
+                SendData_All[2] = 0x00;
+                SendData_All[3] = 0x7D;
+                SendData_All[4] = 0x00;
+                SendData_All[5] = 0x08;
+                byte[] byteArray_right = BitConverter.GetBytes(ModRTU_CRC(SendData_All, 6));
+                Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[0], 16));
+                Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[1], 16));
+                SendData_All[6] = byteArray_right[0];
+                SendData_All[7] = byteArray_right[1];
+                comport.Write(SendData_All, 0, SendData_All.Length);*/
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+            {
+
+            }
         }
 
-        private void btnSendR_MouseUp(object sender, MouseEventArgs e) //放開順時針轉
+        private void btnSendL_MouseUp(object sender, MouseEventArgs e) //放開順時針轉
         {
-            btnSendR.BackColor = SystemColors.Control;
-            //CanBusFunc.CANBUS_TurnRight = false;
-            AdvBusFunc.CANBUS_TurnRight = false;
-        }
+            if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)//大型車
+            {
+                btnSendL.BackColor = SystemColors.Control;
+                //CanBusFunc.CANBUS_TurnLeft = false;
+                AdvBusFunc.CANBUS_TurnLeft = false;
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+            {
 
-        private void btnSendL_MouseDown(object sender, MouseEventArgs e) //壓下逆時針轉
-        {
-            btnSendL.BackColor = System.Drawing.Color.LightGreen;
-            //CanBusFunc.CANBUS_TurnLeft = true;
-            AdvBusFunc.CANBUS_TurnLeft = true;
-        }
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)//小型車
+            {
+                SCarMoveStop(1);
+                /*SendData_All[0] = 0x00;
+                SendData_All[1] = 0x06;
+                SendData_All[2] = 0x00;
+                SendData_All[3] = 0x7D;
+                SendData_All[4] = 0x00;
+                SendData_All[5] = 0x20;
+                byte[] byteArray_right = BitConverter.GetBytes(ModRTU_CRC(SendData_All, 6));
+                Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[0], 16));
+                Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[1], 16));
+                SendData_All[6] = byteArray_right[0];
+                SendData_All[7] = byteArray_right[1];
+                comport.Write(SendData_All, 0, SendData_All.Length);*/
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+            {
 
-        private void btnSendL_MouseUp(object sender, MouseEventArgs e) //放開逆時針轉
-        {
-            btnSendL.BackColor = SystemColors.Control;
-            //CanBusFunc.CANBUS_TurnLeft = false;
-            AdvBusFunc.CANBUS_TurnLeft = false;
+            }
         }
 
         private void btnUp_MouseDown(object sender, MouseEventArgs e)   //按下前端上升
@@ -733,29 +1228,739 @@ namespace PLC_Control
             obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_MR, "014", 1);
         }
 
+        string value;
+
         private void btnClibratOrigin_Click(object sender, EventArgs e)
         {
-            //轉向歸零
-            AngleProcess(0);
-
-            //if (CanBusFunc.TransData[3] != 0) Thread.Sleep(3000);
-            if (AdvBusFunc.TransData[3] != 0) Thread.Sleep(3000);
-            AdjustOriginCounter = 0;
-
-            btnClibratOrigin.BackColor = SystemColors.Control;
-            btnClibratOrigin.Text = "原點校正";
-
-            //開啟轉向復歸校正涵式(快速)timer
-            if (TimerAdjustOriginHighSpeed.Enabled == false)
+            if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)//大型車
             {
-                if (TimerAdjustOriginHighSpeed.Interval != 150)
+                //轉向歸零
+                AngleProcess(0);
+
+                //if (CanBusFunc.TransData[3] != 0) Thread.Sleep(3000);
+                if (AdvBusFunc.TransData[3] != 0) Thread.Sleep(3000);
+                AdjustOriginCounter = 0;
+
+                btnClibratOrigin.BackColor = SystemColors.Control;
+                btnClibratOrigin.Text = "原點校正";
+
+                //開啟轉向復歸校正涵式(快速)timer
+                if (TimerAdjustOriginHighSpeed.Enabled == false)
                 {
-                    TimerAdjustOriginHighSpeed.Interval = 150;
-                    TimerAdjustOriginHighSpeed.Elapsed += new System.Timers.ElapsedEventHandler(AdjustOriginFuncHighSpeed);
+                    if (TimerAdjustOriginHighSpeed.Interval != 150)
+                    {
+                        TimerAdjustOriginHighSpeed.Interval = 150;
+                        TimerAdjustOriginHighSpeed.Elapsed += new System.Timers.ElapsedEventHandler(AdjustOriginFuncHighSpeed);
+                    }
+                    TimerAdjustOriginHighSpeed.Enabled = true;
+                    GlobalVar.islibratOrigin = true;
                 }
-                TimerAdjustOriginHighSpeed.Enabled = true;
-                GlobalVar.islibratOrigin = true;
             }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)//小型車
+            {
+                /*SendData_CW[0] = 0x00;   //兩輪一起下
+                SendData_CW[1] = 0x10;   //寫入數個保持寄存器
+                SendData_CW[2] = 0x03;
+                SendData_CW[3] = 0x84;
+                SendData_CW[4] = 0x00;
+                SendData_CW[5] = 0x02;
+                SendData_CW[6] = 0x04;   //詢問的寄存器數的兩倍的值
+                SendData_CW[7] = 0x00;
+                SendData_CW[8] = 0x00;
+                SendData_CW[9] = 0x00;
+
+                if (Modify_Direction % 2 == 0)
+                {
+                    //SendData_CW[8] = 0x00;
+                    SendData_CW[10] = 0x00;
+                    Modify_Direction++;
+                }
+                else
+                {
+                    //SendData_CW[8] = 0x01;
+                    SendData_CW[10] = 0x01;
+                    Modify_Direction = 0;
+ 
+                }
+
+                byte[] byteArray_CW = BitConverter.GetBytes(ModRTU_CRC(SendData_CW, 11));
+                Console.WriteLine("0x{0}", Convert.ToString(byteArray_CW[0], 16));
+                Console.WriteLine("0x{0}", Convert.ToString(byteArray_CW[1], 16));
+                SendData_CW[11] = byteArray_CW[0];
+                SendData_CW[12] = byteArray_CW[1];
+                comport.Write(SendData_CW, 0, SendData_CW.Length);
+                Thread.Sleep(100);
+
+                DataConfiguration();*/
+
+                if (MainForm.InputBox("儲存NV記憶體資訊", "請輸入密碼:", ref value) == DialogResult.OK)
+                {
+                    SCarDataSaveToNV();
+                    MessageBox.Show("儲存成功");
+                }
+                //CW_ASK = 1; 
+            }
+
+        }
+
+        public static void DataCCW(int left_OR_right, int CW)//static
+        {
+            SendData_CW[0] = 0x01;   //兩輪一起下
+            SendData_CW[1] = 0x10;   //寫入數個保持寄存器
+            SendData_CW[2] = 0x03;
+            SendData_CW[3] = 0x84;
+            SendData_CW[4] = 0x00;
+            SendData_CW[5] = 0x02;
+            SendData_CW[6] = 0x04;   //詢問的寄存器數的兩倍的值
+            SendData_CW[7] = 0x00;
+            SendData_CW[8] = 0x00;
+            SendData_CW[9] = 0x00;
+
+            if (CW == 0)
+            {
+                SendData_CW[10] = 0x00;
+            }
+            else //if (CW == 1)
+            {
+                SendData_CW[10] = 0x01;
+            }
+
+            byte[] byteArray_CW = BitConverter.GetBytes(ModRTU_CRC(SendData_CW, 11));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_CW[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_CW[1], 16));
+            SendData_CW[11] = byteArray_CW[0];
+            SendData_CW[12] = byteArray_CW[1];
+            if (left_OR_right == 1)
+            {
+                comport_L.Write(SendData_CW, 0, SendData_CW.Length);
+            }
+            else if (left_OR_right == 2)
+            {
+                comport_R.Write(SendData_CW, 0, SendData_CW.Length);
+            }
+            Thread.Sleep(100);
+        }
+
+        //static int OldSpeed_L, OldSpeed_R, CarCW = 3;
+        //小車直行
+        static int CraMove = 0;
+
+        //小車移動
+        public static void CarMove(string MoveCategory)// CarMove(Forward Back Counterclockwise Clockwise)前 後 逆 順
+        {
+            if (CraMove == 0)
+            {
+                if (MoveCategory == "Forward")//前進
+                {
+                    comport_L.Write(SendData_right_Forward, 0, SendData_right_Forward.Length);
+                    comport_R.Write(SendData_left_Back, 0, SendData_left_Back.Length);
+                    Thread.Sleep(50);
+                    CraMove = 1;
+                }
+                else if (MoveCategory == "Back")//後退
+                {
+                    comport_L.Write(SendData_right_Back, 0, SendData_right_Back.Length);
+                    comport_R.Write(SendData_left_Forward, 0, SendData_left_Forward.Length);
+                    Thread.Sleep(50);
+                    CraMove = 1;
+                }
+                else if (MoveCategory == "Counterclockwise") //逆時針
+                {
+                    comport_L.Write(SendData_right_Forward, 0, SendData_right_Forward.Length);
+                    comport_R.Write(SendData_left_Forward, 0, SendData_left_Forward.Length);
+                    Thread.Sleep(50);
+                    CraMove = 1;
+                }
+                else if (MoveCategory == "Clockwise")//順時針
+                {
+                    comport_L.Write(SendData_right_Back, 0, SendData_right_Back.Length);
+                    comport_R.Write(SendData_left_Back, 0, SendData_left_Back.Length);
+                    Thread.Sleep(50);
+                    CraMove = 1;
+                }
+                else
+                {
+                    Thread.Sleep(50);
+                    CraMove = 0;
+                }
+            }
+ 
+        }
+
+
+        //小車停止
+        public static void SCarMoveStop(int BrakeWay)//static
+        {
+            SendData_All[0] = 0x00;
+            SendData_All[1] = 0x06;
+            SendData_All[2] = 0x00;
+            SendData_All[3] = 0x7D;
+            SendData_All[4] = 0x00;
+            if (BrakeWay == 0)
+            {
+                SendData_All[5] = 0x00;
+            }
+            else
+            {
+                SendData_All[5] = 0x20;
+            }
+            byte[] byteArray_right = BitConverter.GetBytes(ModRTU_CRC(SendData_All, 6));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[1], 16));
+            SendData_All[6] = byteArray_right[0];
+            SendData_All[7] = byteArray_right[1];
+            comport_L.Write(SendData_All, 0, SendData_All.Length);
+            comport_R.Write(SendData_All, 0, SendData_All.Length);
+
+            CraMove = 0;
+        }
+
+
+
+        /*public static void SCarForward(int NewSpeed_L, int NewSpeed_R,int CarCCW)//static
+        {
+            if (NewSpeed_L < 0 || NewSpeed_R < 0)
+            {
+                return;
+            }
+            if (NewSpeed_L != 0)
+            {
+                if (OldSpeed_L != NewSpeed_L)
+                {
+                    OldSpeed_L = NewSpeed_L;
+                    SCarmodify_speed(NewSpeed_L, 1);
+                    Thread.Sleep(100);
+                }
+            }
+
+            if (NewSpeed_R != 0)
+            {
+                if (OldSpeed_R != NewSpeed_R)
+                {
+                    OldSpeed_R = NewSpeed_R;
+                    SCarmodify_speed(NewSpeed_R, 2);
+                    Thread.Sleep(100);
+                }
+            }
+
+            if (NewSpeed_L > 4000)
+            {
+                NewSpeed_L = 4000;
+            }
+            if (NewSpeed_R > 4000)
+            {
+                NewSpeed_R = 4000;
+            }
+
+            //DataCCW(1, 1);
+            if (CarCW != 0 || CarCCW==1)
+            {
+                DataCCW(2, 0);
+                Thread.Sleep(50);
+                //DataCCW(2, 1);
+                CarCW = 0;
+                SCarDataConfiguration();
+                Thread.Sleep(100);
+            }
+            //右輪
+            SendData_right[0] = 0x01;
+            SendData_right[1] = 0x06;
+            SendData_right[2] = 0x00;
+            SendData_right[3] = 0x7D;
+            SendData_right[4] = 0x00;
+            SendData_right[5] = 0x10;
+            byte[] byteArray_right = BitConverter.GetBytes(ModRTU_CRC(SendData_right, 6));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[1], 16));
+            SendData_right[6] = byteArray_right[0];
+            SendData_right[7] = byteArray_right[1];
+            comport_L.Write(SendData_right, 0, SendData_right.Length);
+            //Thread.Sleep(50);
+            comport_R.Write(SendData_right, 0, SendData_right.Length);
+            Thread.Sleep(50);
+        }
+
+        //小車後退
+        public static void SCarBack(int NewSpeed_L, int NewSpeed_R,int CarCCW)//static
+        {
+            if (NewSpeed_L > 0 || NewSpeed_R > 0)
+            {
+                return;
+            }
+
+            NewSpeed_L = -NewSpeed_L;
+            NewSpeed_R = -NewSpeed_R;
+
+            if (NewSpeed_L != 0)
+            {
+                if (OldSpeed_L != NewSpeed_L)
+                {
+                    OldSpeed_L = NewSpeed_L;
+                    SCarmodify_speed(NewSpeed_L, 1);
+                    Thread.Sleep(100);
+                }
+            }
+
+            if (NewSpeed_R != 0)
+            {
+                if (OldSpeed_R != NewSpeed_R)
+                {
+                    OldSpeed_R = NewSpeed_R;
+                    SCarmodify_speed(NewSpeed_R, 2);
+                    Thread.Sleep(100);
+                }
+            }
+
+            if (NewSpeed_L > 4000)
+            {
+                NewSpeed_L = 4000;
+            }
+            if (NewSpeed_R > 4000)
+            {
+                NewSpeed_R = 4000;
+            }
+
+            if (CarCW != 0 || CarCCW==1)
+            {
+                DataCCW(2, 0);
+                Thread.Sleep(50);
+                //DataCCW(2, 1);
+                CarCW = 0;
+                SCarDataConfiguration();
+                Thread.Sleep(100);
+            }
+
+            //右輪
+            SendData_right[0] = 0x01;
+            SendData_right[1] = 0x06;
+            SendData_right[2] = 0x00;
+            SendData_right[3] = 0x7D;
+            SendData_right[4] = 0x00;
+            SendData_right[5] = 0x08;
+            byte[] byteArray_right = BitConverter.GetBytes(ModRTU_CRC(SendData_right, 6));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[1], 16));
+            SendData_right[6] = byteArray_right[0];
+            SendData_right[7] = byteArray_right[1];
+            comport_L.Write(SendData_right, 0, SendData_right.Length);
+            //Thread.Sleep(50);
+            comport_R.Write(SendData_right, 0, SendData_right.Length);
+            Thread.Sleep(50);
+        }
+
+        //小車逆時針
+        public static void SCarCounterclockwise(int NewSpeed_L, int NewSpeed_R,int CarCCW)
+        {
+            if (NewSpeed_L < 0 || NewSpeed_R > 0)
+            {
+                return;
+            }
+
+            //NewSpeed_L = NewSpeed_L;
+            NewSpeed_R = -NewSpeed_R;
+
+            if (NewSpeed_L != 0)
+            {
+                if (OldSpeed_L != NewSpeed_L)
+                {
+                    OldSpeed_L = NewSpeed_L;
+                    SCarmodify_speed(NewSpeed_L, 1);
+                    Thread.Sleep(100);
+                }
+            }
+
+            if (NewSpeed_R != 0)
+            {
+                if (OldSpeed_R != NewSpeed_R)
+                {
+                    OldSpeed_R = NewSpeed_R;
+                    SCarmodify_speed(NewSpeed_R, 2);
+                    Thread.Sleep(100);
+                }
+            }
+
+            if (NewSpeed_L > 4000)
+            {
+                NewSpeed_L = 4000;
+            }
+            if (NewSpeed_R > 4000)
+            {
+                NewSpeed_R = 4000;
+            }
+
+            if (CarCW != 1 || CarCCW ==1)
+            {
+                DataCCW(2, 1);
+                Thread.Sleep(50);
+                //DataCCW(2, 1);
+                CarCW = 1;
+                SCarDataConfiguration();
+                Thread.Sleep(100);
+            }
+
+            SendData_All[0] = 0x01;
+            SendData_All[1] = 0x06;
+            SendData_All[2] = 0x00;
+            SendData_All[3] = 0x7D;
+            SendData_All[4] = 0x00;
+            SendData_All[5] = 0x10;
+            byte[] byteArray_right = BitConverter.GetBytes(ModRTU_CRC(SendData_All, 6));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[1], 16));
+            SendData_All[6] = byteArray_right[0];
+            SendData_All[7] = byteArray_right[1];
+            comport_L.Write(SendData_All, 0, SendData_All.Length);
+            comport_R.Write(SendData_All, 0, SendData_All.Length);
+            Thread.Sleep(50);
+        }
+
+
+        static int CarCCW_All = 0;
+        //小車順時針
+        public static void SCarClockwise(int NewSpeed_L, int NewSpeed_R, int CarCCW)
+        {
+            if (NewSpeed_L > 0 || NewSpeed_R < 0)
+            {
+                return;
+            }
+            NewSpeed_L = -NewSpeed_L;
+            //NewSpeed_R = NewSpeed_R;
+
+            if (NewSpeed_L != 0)
+            {
+                if (OldSpeed_L != NewSpeed_L)
+                {
+                    OldSpeed_L = NewSpeed_L;
+                    SCarmodify_speed(NewSpeed_L, 1);
+                    Thread.Sleep(100);           
+                }
+            }
+
+            if (NewSpeed_R != 0)
+            {
+                if (OldSpeed_R != NewSpeed_R)
+                {
+                    OldSpeed_R = NewSpeed_R;
+                    SCarmodify_speed(NewSpeed_R, 2);
+                    Thread.Sleep(100);
+                }  
+            }
+
+            if (NewSpeed_L > 4000)
+            {
+                NewSpeed_L = 4000;
+            }
+            if (NewSpeed_R > 4000)
+            {
+                NewSpeed_R = 4000;
+            }
+
+            if (CarCW != 1 || CarCCW == 1)
+            {
+                DataCCW(2, 1);
+                Thread.Sleep(50);
+                //DataCCW(2, 1);
+                CarCW = 1;
+                SCarDataConfiguration();
+                Thread.Sleep(100);
+            }
+
+            SendData_All[0] = 0x01;
+            SendData_All[1] = 0x06;
+            SendData_All[2] = 0x00;
+            SendData_All[3] = 0x7D;
+            SendData_All[4] = 0x00;
+            SendData_All[5] = 0x08;
+            byte[] byteArray_right = BitConverter.GetBytes(ModRTU_CRC(SendData_All, 6));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[1], 16));
+            SendData_All[6] = byteArray_right[0];
+            SendData_All[7] = byteArray_right[1];
+            comport_L.Write(SendData_All, 0, SendData_All.Length);
+            Thread.Sleep(50);
+            comport_R.Write(SendData_All, 0, SendData_All.Length);
+            Thread.Sleep(50);
+        }
+        */
+
+        /*public static void SCarCarCCW_All(int CarCCW)
+        {
+            CarCCW_All = CarCCW;
+        }*/
+
+        //小車Configuration資料
+        public static void SCarDataConfiguration()//static
+        {
+            SendData_Configuration[0] = 0x01;   //兩輪一起下
+            SendData_Configuration[1] = 0x10;   //寫入數個保持寄存器
+            SendData_Configuration[2] = 0x01;
+            SendData_Configuration[3] = 0x8C;
+            SendData_Configuration[4] = 0x00;
+            SendData_Configuration[5] = 0x02;
+            SendData_Configuration[6] = 0x04;   //詢問的寄存器數的兩倍的值
+            SendData_Configuration[7] = 0x00;
+            SendData_Configuration[8] = 0x00;
+            SendData_Configuration[9] = 0x00;
+            SendData_Configuration[10] = 0x01;
+
+            byte[] byteArray_Configuration = BitConverter.GetBytes(ModRTU_CRC(SendData_Configuration, 11));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_Configuration[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_Configuration[1], 16));
+            SendData_Configuration[11] = byteArray_Configuration[0];
+            SendData_Configuration[12] = byteArray_Configuration[1];
+            comport_L.Write(SendData_Configuration, 0, SendData_Configuration.Length);
+            comport_R.Write(SendData_Configuration, 0, SendData_Configuration.Length);
+
+            Thread.Sleep(50);
+
+            SendData_Configuration[0] = 0x01;   //兩輪一起下
+            SendData_Configuration[1] = 0x10;   //寫入數個保持寄存器
+            SendData_Configuration[2] = 0x01;
+            SendData_Configuration[3] = 0x8C;
+            SendData_Configuration[4] = 0x00;
+            SendData_Configuration[5] = 0x02;
+            SendData_Configuration[6] = 0x04;   //詢問的寄存器數的兩倍的值
+            SendData_Configuration[7] = 0x00;
+            SendData_Configuration[8] = 0x00;
+            SendData_Configuration[9] = 0x00;
+            SendData_Configuration[10] = 0x00;
+
+            byteArray_Configuration = BitConverter.GetBytes(ModRTU_CRC(SendData_Configuration, 11));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_Configuration[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_Configuration[1], 16));
+            SendData_Configuration[11] = byteArray_Configuration[0];
+            SendData_Configuration[12] = byteArray_Configuration[1];
+            comport_L.Write(SendData_Configuration, 0, SendData_Configuration.Length);
+            comport_R.Write(SendData_Configuration, 0, SendData_Configuration.Length);
+
+            Thread.Sleep(50);
+        }
+
+        //小車紀錄NV記憶體
+        public static void SCarDataSaveToNV()//static
+        {
+            SendData_Configuration[0] = 0x01;   //兩輪一起下
+            SendData_Configuration[1] = 0x10;   //寫入數個保持寄存器
+            SendData_Configuration[2] = 0x01;
+            SendData_Configuration[3] = 0x92;
+            SendData_Configuration[4] = 0x00;
+            SendData_Configuration[5] = 0x02;
+            SendData_Configuration[6] = 0x04;   //詢問的寄存器數的兩倍的值
+            SendData_Configuration[7] = 0x00;
+            SendData_Configuration[8] = 0x00;
+            SendData_Configuration[9] = 0x00;
+            SendData_Configuration[10] = 0x01;
+
+            byte[] byteArray_Configuration = BitConverter.GetBytes(ModRTU_CRC(SendData_Configuration, 11));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_Configuration[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_Configuration[1], 16));
+            SendData_Configuration[11] = byteArray_Configuration[0];
+            SendData_Configuration[12] = byteArray_Configuration[1];
+            comport_L.Write(SendData_Configuration, 0, SendData_Configuration.Length);
+            comport_R.Write(SendData_Configuration, 0, SendData_Configuration.Length);
+
+            Thread.Sleep(50);
+
+            SendData_Configuration[0] = 0x01;   //兩輪一起下
+            SendData_Configuration[1] = 0x10;   //寫入數個保持寄存器
+            SendData_Configuration[2] = 0x01;
+            SendData_Configuration[3] = 0x92;
+            SendData_Configuration[4] = 0x00;
+            SendData_Configuration[5] = 0x02;
+            SendData_Configuration[6] = 0x04;   //詢問的寄存器數的兩倍的值
+            SendData_Configuration[7] = 0x00;
+            SendData_Configuration[8] = 0x00;
+            SendData_Configuration[9] = 0x00;
+            SendData_Configuration[10] = 0x00;
+
+            byteArray_Configuration = BitConverter.GetBytes(ModRTU_CRC(SendData_Configuration, 11));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_Configuration[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_Configuration[1], 16));
+            SendData_Configuration[11] = byteArray_Configuration[0];
+            SendData_Configuration[12] = byteArray_Configuration[1];
+            comport_L.Write(SendData_Configuration, 0, SendData_Configuration.Length);
+            comport_R.Write(SendData_Configuration, 0, SendData_Configuration.Length);
+
+            Thread.Sleep(50);
+        }
+
+        //修改小車速度
+        private static void SCarmodify_speed(int RS485_Speed, int leftORright)
+        {
+            string Str_RS485_Speed = RS485_Speed.ToString("X4");
+            string Front_Str_RS485_Speed = Str_RS485_Speed.Substring(0, 2);
+            string Rear_Str_RS485_Speed = Str_RS485_Speed.Substring(2, 2);
+     
+            SendData_speed[0] = 0x01;   //兩輪一起下
+
+            SendData_speed[1] = 0x10;   //寫入數個保持寄存器
+            SendData_speed[2] = 0x04;
+            SendData_speed[3] = 0x80;
+            SendData_speed[4] = 0x00;
+            SendData_speed[5] = 0x02;
+            SendData_speed[6] = 0x04;   //詢問的寄存器數的兩倍的值
+            SendData_speed[7] = 0x00;
+            SendData_speed[8] = 0x00;
+            SendData_speed[9] = Convert.ToByte(Front_Str_RS485_Speed, 16);
+            SendData_speed[10] = Convert.ToByte(Rear_Str_RS485_Speed, 16);
+
+            byte[] byteArray_speed = BitConverter.GetBytes(ModRTU_CRC(SendData_speed, 11));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_speed[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_speed[1], 16));
+            SendData_speed[11] = byteArray_speed[0];
+            SendData_speed[12] = byteArray_speed[1];
+
+            //SCarDataConfiguration();
+            //DataSaveToNV();
+            if (leftORright == 1)
+            {
+                comport_L.Write(SendData_speed, 0, SendData_speed.Length);
+                Thread.Sleep(50);
+                Speed_ASK_L = 1;
+                
+                //SCarGET_speed(leftORright);
+            }
+            if (leftORright == 2)
+            {
+                comport_R.Write(SendData_speed, 0, SendData_speed.Length);
+                Thread.Sleep(50);
+                Speed_ASK_R = 1;
+                
+                //SCarGET_speed(leftORright);
+            }
+            if (leftORright == 0)
+            {
+                comport_L.Write(SendData_speed, 0, SendData_speed.Length);
+                Thread.Sleep(100);
+                Speed_ASK_L = 1;
+
+                comport_R.Write(SendData_speed, 0, SendData_speed.Length);
+                Thread.Sleep(100);
+                Speed_ASK_R = 1;
+
+                //SCarGET_speed(leftORright);
+            }
+        }
+
+        private static void SCarGET_speed_L()
+        {
+            SendData_speed_ASK[0] = 0x01;   //兩輪
+            SendData_speed_ASK[1] = 0x03;   //讀入數個保持寄存器
+            SendData_speed_ASK[2] = 0x04;
+            SendData_speed_ASK[3] = 0x80;
+            SendData_speed_ASK[4] = 0x00;
+            SendData_speed_ASK[5] = 0x04;   //詢問的寄存器數的兩倍的值
+
+            byte[] byteArray_speed = BitConverter.GetBytes(ModRTU_CRC(SendData_speed_ASK, 6));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_speed[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_speed[1], 16));
+            SendData_speed_ASK[6] = byteArray_speed[0];
+            SendData_speed_ASK[7] = byteArray_speed[1];
+            
+            //if (leftORright == 1)
+            {
+                comport_L.Write(SendData_speed_ASK, 0, SendData_speed_ASK.Length);
+                Speed_ASK_L = 1;
+                Thread.Sleep(50);
+            }
+            /*if (leftORright == 2)
+            {
+                comport_R.Write(SendData_speed_ASK, 0, SendData_speed_ASK.Length);
+                Speed_ASK_R = 1;
+                Thread.Sleep(50);
+            }*/
+        }
+
+        private static void SCarGET_speed_R()
+        {
+            SendData_speed_ASK[0] = 0x01;   //兩輪
+            SendData_speed_ASK[1] = 0x03;   //讀入數個保持寄存器
+            SendData_speed_ASK[2] = 0x04;
+            SendData_speed_ASK[3] = 0x80;
+            SendData_speed_ASK[4] = 0x00;
+            SendData_speed_ASK[5] = 0x04;   //詢問的寄存器數的兩倍的值
+
+            byte[] byteArray_speed = BitConverter.GetBytes(ModRTU_CRC(SendData_speed_ASK, 6));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_speed[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_speed[1], 16));
+            SendData_speed_ASK[6] = byteArray_speed[0];
+            SendData_speed_ASK[7] = byteArray_speed[1];
+
+            /*if (leftORright == 1)
+            {
+                comport_L.Write(SendData_speed_ASK, 0, SendData_speed_ASK.Length);
+                Speed_ASK_L = 1;
+                Thread.Sleep(50);
+            }
+            /*if (leftORright == 2)*/
+            {
+                comport_R.Write(SendData_speed_ASK, 0, SendData_speed_ASK.Length);
+                Speed_ASK_R = 1;
+                Thread.Sleep(50);
+            }
+        }
+
+        private void SCarGET_CW()
+        {
+            SendData_GET_CW[0] = 0x02;   //兩輪一起下
+            SendData_GET_CW[1] = 0x03;   //讀入數個保持寄存器
+            SendData_GET_CW[2] = 0x03;
+            SendData_GET_CW[3] = 0x84;
+            SendData_GET_CW[4] = 0x00;
+            SendData_GET_CW[5] = 0x04;   //詢問的寄存器數的兩倍的值
+
+            byte[] byteArray_CW = BitConverter.GetBytes(ModRTU_CRC(SendData_GET_CW, 6));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_CW[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_CW[1], 16));
+            SendData_GET_CW[6] = byteArray_CW[0];
+            SendData_GET_CW[7] = byteArray_CW[1];
+            comport_L.Write(SendData_GET_CW, 0, SendData_GET_CW.Length);
+
+            //CW_ASK = 1;
+        }
+
+
+        public static DialogResult InputBox(string title, string promptText, ref string value)
+        {
+            Form form = new Form();
+            Label label = new Label();
+            TextBox textBox = new TextBox();
+            Button buttonOk = new Button();
+            Button buttonCancel = new Button();
+            value = "";
+            form.Text = title;
+            //label.Text = promptText;
+            //textBox.Text = value;
+
+            buttonOk.Text = "OK";
+            buttonCancel.Text = "Cancel";
+            buttonOk.DialogResult = DialogResult.OK;
+            buttonCancel.DialogResult = DialogResult.Cancel;
+
+            label.SetBounds(9, 20, 200, 13);
+            //textBox.SetBounds(12, 36, 372, 20);
+            buttonOk.SetBounds(10, 30, 75, 23);
+            buttonCancel.SetBounds(110, 30, 75, 23);
+
+            label.AutoSize = true;
+            //textBox.Anchor = textBox.Anchor | AnchorStyles.Right;
+            buttonOk.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            buttonCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+
+            form.ClientSize = new Size(200, 107);
+            form.Controls.AddRange(new Control[] { buttonOk, buttonCancel });
+            //form.Controls.AddRange(new Control[] { label, textBox, buttonOk, buttonCancel });
+            form.ClientSize = new Size(Math.Max(100, label.Right), form.ClientSize.Height);
+            form.FormBorderStyle = FormBorderStyle.FixedDialog;
+            form.StartPosition = FormStartPosition.CenterScreen;
+            form.MinimizeBox = false;
+            form.MaximizeBox = false;
+            form.AcceptButton = buttonOk;
+            form.CancelButton = buttonCancel;
+
+            DialogResult dialogResult = form.ShowDialog();
+            value = textBox.Text;
+            return dialogResult;
         }
 
         private void AdjustOriginFuncHighSpeed(object sender, EventArgs e) //轉向復歸校正涵式(快速)
@@ -862,6 +2067,7 @@ namespace PLC_Control
         {
             if (CanConnect_Status == 0) //如果裝置尚未連線
             {
+
                 //CanBus開始連線
                 //CanConnect_Status = CanBusFunc.CanConnect();
 
@@ -880,6 +2086,7 @@ namespace PLC_Control
                     MessageBox.Show("打開裝置失敗,請檢察", "錯誤",
                                  MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
+
             }
             else if (CanConnect_Status == 1)    //如果裝置連線成功
             {
@@ -982,6 +2189,7 @@ namespace PLC_Control
             Update_Car_Status_Information();
         }
 
+        object[] obj;
         //更新車體資料狀態
         public void Update_Car_Status_Information()
         {
@@ -994,21 +2202,76 @@ namespace PLC_Control
                 TempForkStatus = DeliverData.tAGV_Data.CFork.tForkData.ucStatus;
             }
 
-            object[] obj = new object[10] { 
-                GlobalVar.CurrentPosition.LocationX,
-                GlobalVar.CurrentPosition.LocationY,
-                GlobalVar.CurrentPosition.Direction,
-                GlobalVar.ForkCurrentHeight,
-                TempAGV_Status.ToString(),
-                TempForkStatus.ToString(),
-                GlobalVar.CarTireSpeedLeft.ToString(),
-                GlobalVar.CarTireSpeedRight.ToString(),
-                Math.Round(GlobalVar.RealMotorAngle, 2),
-                 GlobalVar.RealMotorPower
-            };
-
             dataGridView2.Rows.Clear();
+
+
+            if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)
+            {
+                obj = new object[10] { 
+                    GlobalVar.CurrentPosition.LocationX,
+                    GlobalVar.CurrentPosition.LocationY,
+                    GlobalVar.CurrentPosition.Direction,
+                    GlobalVar.ForkCurrentHeight,
+                    TempAGV_Status,
+                    TempForkStatus,
+                    GlobalVar.CarTireSpeedLeft,
+                    GlobalVar.CarTireSpeedRight,
+                    Math.Round(GlobalVar.RealMotorAngle, 2),
+                     GlobalVar.RealMotorPower
+                    };
+
+                if (MachineType_SelectionChangeCommitted == 1)
+                {
+                    dataGridView2.Columns.Clear();
+                    dataGridView2.Columns.Add("X", "X");
+                    dataGridView2.Columns.Add("Y", "Y");
+                    dataGridView2.Columns.Add("Angle", "Angle");
+                    dataGridView2.Columns.Add("FHight", "FHight");
+                    dataGridView2.Columns.Add("AGVStatus", "AGVStatus");
+                    dataGridView2.Columns.Add("FStaus", "FStaus");
+                    dataGridView2.Columns.Add("SpeedL", "SpeedL");
+                    dataGridView2.Columns.Add("SpeedR", "SpeedR");
+                    dataGridView2.Columns.Add("WAngle", "WAngle");
+                    dataGridView2.Columns.Add("Power", "Power");
+
+                    MachineType_SelectionChangeCommitted = 0;
+                }
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+            {
+
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)
+            {
+                obj = new object[5] {
+
+                    GlobalVar.CurrentPosition.LocationX,
+                    GlobalVar.CurrentPosition.LocationY,
+                    GlobalVar.CurrentPosition.Direction,
+                    label_Current_Speed_Num_L.Text,
+                    label_Current_Speed_Num_R.Text,
+                    };
+
+                if (MachineType_SelectionChangeCommitted == 1)
+                {
+                    dataGridView2.Columns.Clear();
+                    dataGridView2.Columns.Add("X", "X");
+                    dataGridView2.Columns.Add("Y", "Y");
+                    dataGridView2.Columns.Add("Angle", "Angle");
+                    dataGridView2.Columns.Add("SpeedL", "SpeedL");
+                    dataGridView2.Columns.Add("SpeedR", "SpeedR");
+
+                    MachineType_SelectionChangeCommitted = 0;
+                }
+
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+            {
+
+            }
+
             DataGridViewRow dgvr = new DataGridViewRow();
+
             dgvr.CreateCells(dataGridView2, obj);
             dgvr.Height = 35;
             dgvr.DefaultCellStyle.BackColor = System.Drawing.Color.LightSkyBlue;
@@ -1058,46 +2321,135 @@ namespace PLC_Control
         #endregion
 
         #region 轉向涵式
-
+        static int ModifySpeed_YorN = 0;
+        static int Acceleration = 0; //小車加速度數值
         public static void AngleProcess(int value)
         {
             if (Math.Abs(value) > 140) return;
             if (value < 0) value = 360 + value;
 
-            //高位元(TransData[3])將360度分成256間隔
-            //低為元(TransData[2])將每一高位元的值分成256間隔
-            double HT_Value = (double)value / (double)1.40625;
-            int temp = Convert.ToInt16(Math.Floor(HT_Value));
-            double LT_Value = HT_Value - temp;
-            LT_Value *= (double)1.40625;
-            LT_Value /= (double)0.0054931640625;
-
-            int HValue = Convert.ToInt16(Math.Floor(HT_Value));
-            int LValue = Convert.ToInt16(Math.Floor(LT_Value));
-
-            HValue += H_Error;
-            LValue += L_Error;
-            if (LValue >= 255)
+            if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)//大型車
             {
-                HValue = HValue + 1;
-                LValue = LValue - 255;
-            }
-            /*CanBusFunc.TransData[2] = System.Convert.ToByte((byte)LValue);
-            CanBusFunc.TransData[3] = System.Convert.ToByte((byte)HValue);
-            CanBusFunc.TransData[4] = GlobalVar.RotateSpeed;
-            CanBusFunc.TransData[5] = GlobalVar.RotateSpeed;
-            CanBusFunc.isSend = true;*/
+                //高位元(TransData[3])將360度分成256間隔
+                //低為元(TransData[2])將每一高位元的值分成256間隔
+                double HT_Value = (double)value / (double)1.40625;
+                int temp = Convert.ToInt16(Math.Floor(HT_Value));
+                double LT_Value = HT_Value - temp;
+                LT_Value *= (double)1.40625;
+                LT_Value /= (double)0.0054931640625;
 
-            AdvBusFunc.TransData[2] = System.Convert.ToByte((byte)LValue);
-            AdvBusFunc.TransData[3] = System.Convert.ToByte((byte)HValue);
-            AdvBusFunc.TransData[4] = GlobalVar.RotateSpeed;
-            AdvBusFunc.TransData[5] = GlobalVar.RotateSpeed;
-            AdvBusFunc.isSend = true;
+                int HValue = Convert.ToInt16(Math.Floor(HT_Value));
+                int LValue = Convert.ToInt16(Math.Floor(LT_Value));
+
+                HValue += H_Error;
+                LValue += L_Error;
+                if (LValue >= 255)
+                {
+                    HValue = HValue + 1;
+                    LValue = LValue - 255;
+                }
+                /*CanBusFunc.TransData[2] = System.Convert.ToByte((byte)LValue);
+                CanBusFunc.TransData[3] = System.Convert.ToByte((byte)HValue);
+                CanBusFunc.TransData[4] = GlobalVar.RotateSpeed;
+                CanBusFunc.TransData[5] = GlobalVar.RotateSpeed;
+                CanBusFunc.isSend = true;*/
+
+                AdvBusFunc.TransData[2] = System.Convert.ToByte((byte)LValue);
+                AdvBusFunc.TransData[3] = System.Convert.ToByte((byte)HValue);
+                AdvBusFunc.TransData[4] = GlobalVar.RotateSpeed;
+                AdvBusFunc.TransData[5] = GlobalVar.RotateSpeed;
+                AdvBusFunc.isSend = true;
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+            {
+
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)//小型車
+            {
+                //value = GlobalVar.CurrentPosition.Direction;
+                if (value <= 180)
+                {
+                    //Acceleration = (int)(value * 7.14);
+                    if (value > 1 && value <= 5)
+                    {
+                        Acceleration = 5;
+                    }
+                    else if (value > 5 && value <= 20)
+                    {
+                        Acceleration = 20;
+                    }
+                    else if (value > 20 && value <= 80)
+                    {
+                        Acceleration = 50;
+                    }
+                    else if (value > 80 && value <= 180)
+                    {
+                        Acceleration = 100;
+                    }
+
+                    if (ModifySpeed_YorN != Acceleration && Speed_ASK_L == 0)
+                    {
+                        SCarmodify_speed(numericUpDown_speed_R + Acceleration, 2);
+                        ModifySpeed_YorN = Acceleration;
+                        Thread.Sleep(100); 
+                    }
+                }
+                else if (value > 180)
+                {
+                    //Acceleration = (int)(value * 7.14);
+                    if (value > 1 && value <= 5)
+                    {
+                        Acceleration = 5;
+                    }
+                    else if (value > 5 && value <= 20)
+                    {
+                        Acceleration = 20;
+                    }
+                    else if (value > 20 && value <= 80)
+                    {
+                        Acceleration = 50;
+                    }
+                    else if (value > 80 && value <= 180)
+                    {
+                        Acceleration = 100;
+                    }
+
+                    if (ModifySpeed_YorN != Acceleration && Speed_ASK_R == 0)
+                    {
+                        SCarmodify_speed(numericUpDown_speed_L + Acceleration, 1);
+                        ModifySpeed_YorN = Acceleration;
+                        Thread.Sleep(100);    
+                    }
+                }
+                //Console.WriteLine(Acceleration);
+                //Console.WriteLine(value);
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+            {
+            }
         }
 
         #endregion
 
         #region 行走馬達函式
+
+        static byte[] SendData_All = new byte[8];
+        //static byte[] SendData_right = new byte[8];
+        //static byte[] SendData_left = new byte[8];
+
+
+        static byte[] SendData_right_Forward = new byte[8];
+        static byte[] SendData_left_Forward = new byte[8];
+        static byte[] SendData_right_Back = new byte[8];
+        static byte[] SendData_left_Back = new byte[8];
+        
+
+        static byte[] SendData_speed = new byte[13];
+        static byte[] SendData_speed_ASK = new byte[8];
+        static byte[] SendData_CW = new byte[13];
+        static byte[] SendData_GET_CW = new byte[8];
+
+        static byte[] SendData_Configuration = new byte[13];
 
         /// <summary>
         /// 車子往前走
@@ -1105,7 +2457,7 @@ namespace PLC_Control
         /// <param name="speed">speed為速度，輸入正為向前進，輸入負為向後退</param>
         public void CarMove(int speed)
         {
-            if (comboBox_MachineType.SelectedIndex == 0)//大型車
+            if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)//大型車
             {
                 //放開系統初始煞車
                 obj_PLC.doWriteDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_MR, "9003", 1);
@@ -1116,46 +2468,74 @@ namespace PLC_Control
                 PowerToSpeedTrans(speed, out HiSpeed, out LoSpeed);
                 SendToPowerMotor(HiSpeed, LoSpeed);
             }
-            else if (comboBox_MachineType.SelectedIndex == 1)
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
             {
 
 
             }
-            else if (comboBox_MachineType.SelectedIndex == 2)//小型車
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)//小型車
             {
-                Byte[] buffer = new Byte[8];
+                /*Byte[] buffer = new Byte[8];
+                comport.Write(new byte[] { 0x03, 0x08, 0x00, 0x00, 0x12, 0x34, 0xEC, 0x9e }, 0, 8);*/
+                /*comport.Write(buffer, 0, buffer.Length);
+                Console.Write(buffer);*/
+
+
+                //DataCCW(1, 1);
+
                 if (speed == 90)
                 {
-                    buffer[0] = 0x00;
-                    buffer[1] = 0x00;
-                    buffer[2] = 0x00;
-                    buffer[3] = 0x00;
-                    buffer[4] = 0x01;
-                    buffer[5] = 0x00;
-                    buffer[6] = 0x00;
-                    buffer[7] = 0x00;
+                    //int RS485_Speed = (int)numericUpDown_speed.Value;
+                    CarMove("Forward");//前
+                    //SCarForward((int)numericUpDown_speed.Value, (int)numericUpDown_speed.Value,0);
+                    
                 }
-                else
+                else if (speed == -90)
                 {
-                    buffer[0] = 0x00;
-                    buffer[1] = 0x00;
-                    buffer[2] = 0x00;
-                    buffer[3] = 0x01;
-                    buffer[4] = 0x00;
-                    buffer[5] = 0x00;
-                    buffer[6] = 0x00;
-                    buffer[7] = 0x00; 
+                    CarMove("Back");//後
+                    //SCarBack(-(int)numericUpDown_speed.Value, -(int)numericUpDown_speed.Value,0);
+                    /*Thread.Sleep(50);
+                    //左輪
+                    SendData_left[0] = 0x02;
+                    SendData_left[1] = 0x06;
+                    SendData_left[2] = 0x00;
+                    SendData_left[3] = 0x7D;
+                    SendData_left[4] = 0x00;
+                    SendData_left[5] = 0x10;
+                    byte[] byteArray_left = BitConverter.GetBytes(ModRTU_CRC(SendData_left, 6));
+                    Console.WriteLine("0x{0}", Convert.ToString(byteArray_left[0], 16));
+                    Console.WriteLine("0x{0}", Convert.ToString(byteArray_left[1], 16));
+                    SendData_left[6] = byteArray_left[0];
+                    SendData_left[7] = byteArray_left[1];
+                    comport.Write(SendData_left, 0, SendData_left.Length);*/
                 }
-                comport.Write(buffer, 0, buffer.Length);
-                Console.Write(buffer);
-
             }
-            else if (comboBox_MachineType.SelectedIndex == 3)
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
             {
 
             }
-            
+        }
 
+        static UInt16 ModRTU_CRC(byte[] buf, int len)
+        {
+            UInt16 crc = 0xFFFF;
+            for (int pos = 0; pos < len; pos++)
+            {
+                crc ^= (UInt16)buf[pos];          // XOR byte into least sig. byte of crc
+
+                for (int i = 8; i != 0; i--)
+                {    // Loop over each bit
+                    if ((crc & 0x0001) != 0)
+                    {     // If the LSB is set
+                        crc >>= 1;                    // Shift right and XOR 0xA001
+                        crc ^= 0xA001;
+                    }
+                    else                            // Else LSB is not set
+                        crc >>= 1;                    // Just shift right
+                }
+            }
+            // Note, this number has low and high bytes swapped, so use it accordingly (or swap bytes)
+            return crc;
         }
 
         public void MoveStop()//static
@@ -1171,8 +2551,7 @@ namespace PLC_Control
             CanBusFunc.TransMoveData[7] = System.Convert.ToByte("00", 16);
             CanBusFunc.isMoveSend = true;*/
 
-
-            if (comboBox_MachineType.SelectedIndex == 0)
+            if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)
             {
                 //馬達控制-停止
                 AdvBusFunc.TransMoveData[0] = System.Convert.ToByte("09", 16);
@@ -1185,31 +2564,49 @@ namespace PLC_Control
                 AdvBusFunc.TransMoveData[7] = System.Convert.ToByte("00", 16);
                 AdvBusFunc.isMoveSend = true;
             }
-            else if (comboBox_MachineType.SelectedIndex == 1)
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
             {
 
             }
-            else if (comboBox_MachineType.SelectedIndex == 2)
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)
             {
-                Byte[] buffer = new Byte[8];
-                buffer[0] = 0x00;
-                buffer[1] = 0x00;
-                buffer[2] = 0x01;
-                buffer[3] = 0x00;
-                buffer[4] = 0x00;
-                buffer[5] = 0x00;
-                buffer[6] = 0x00;
-                buffer[7] = 0x00;
+                //兩輪
+                SCarMoveStop(1);
 
-                comport.Write(buffer, 0, buffer.Length);
+                //右輪
+                /*SendData_right[0] = 0x01;
+                SendData_right[1] = 0x06;
+                SendData_right[2] = 0x00;
+                SendData_right[3] = 0x7D;
+                SendData_right[4] = 0x00;
+                SendData_right[5] = 0x20;
+                byte[] byteArray_right = BitConverter.GetBytes(ModRTU_CRC(SendData_right, 6));
+                Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[0], 16));
+                Console.WriteLine("0x{0}", Convert.ToString(byteArray_right[1], 16));
+                SendData_right[6] = byteArray_right[0];
+                SendData_right[7] = byteArray_right[1];
+                comport.Write(SendData_right, 0, SendData_right.Length);
+
+                Thread.Sleep(50);
+
+                //左輪
+                SendData_left[0] = 0x02;
+                SendData_left[1] = 0x06;
+                SendData_left[2] = 0x00;
+                SendData_left[3] = 0x7D;
+                SendData_left[4] = 0x00;
+                SendData_left[5] = 0x20;
+                byte[] byteArray_left = BitConverter.GetBytes(ModRTU_CRC(SendData_left, 6));
+                Console.WriteLine("0x{0}", Convert.ToString(byteArray_left[0], 16));
+                Console.WriteLine("0x{0}", Convert.ToString(byteArray_left[1], 16));
+                SendData_left[6] = byteArray_left[0];
+                SendData_left[7] = byteArray_left[1];
+                comport.Write(SendData_left, 0, SendData_left.Length);*/
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+            {
 
             }
-            else if (comboBox_MachineType.SelectedIndex == 3)
-            {
-
-            }
-
-            
         }
 
         #endregion
@@ -1428,7 +2825,7 @@ namespace PLC_Control
             //執行連線
             if (txtNAVIP.Text != null && txtNAVPort.Text != null && Connection_Control_SICK != "連線成功")
             {
-                Connection_Control_SICK = NAVClass.NAVConnect(txtNAVIP.Text, txtNAVPort.Text);
+                Connection_Control_SICK = NAVClass.NAVConnect(txtNAVIP.Text, txtNAVPort.Text, comboBox_MachineType_Num);
                 txtNavReceive.Text = DateTime.Now.ToString() + ", " + Connection_Control_SICK + "\r\n" + txtNavReceive.Text;
                 if (Connection_Control_SICK == "連線成功")
                 {
@@ -1569,21 +2966,35 @@ namespace PLC_Control
 
         public static void GetFrontWheelSpeed()
         {
-            //跟PLC要右輪速度
-            int SpeedRight = obj_PLC.doReadDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "52");
-            if (SpeedRight > 32767) SpeedRight = -(65536 - SpeedRight);
-            if (Math.Abs(SpeedRight) < 15) SpeedRight = 0;
-            GlobalVar.CarTireSpeedRight = SpeedRight;
+            if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)
+            {
+                //跟PLC要右輪速度
+                int SpeedRight = obj_PLC.doReadDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "52");
+                if (SpeedRight > 32767) SpeedRight = -(65536 - SpeedRight);
+                if (Math.Abs(SpeedRight) < 15) SpeedRight = 0;
+                GlobalVar.CarTireSpeedRight = SpeedRight;
 
-            //跟PLC要左輪速度
-            int SpeedLeft = obj_PLC.doReadDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "54");
-            if (SpeedLeft > 32767) SpeedLeft = -(65536 - SpeedLeft);
-            if (Math.Abs(SpeedLeft) < 15) SpeedLeft = 0;
-            GlobalVar.CarTireSpeedLeft = SpeedLeft;
+                //跟PLC要左輪速度
+                int SpeedLeft = obj_PLC.doReadDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "54");
+                if (SpeedLeft > 32767) SpeedLeft = -(65536 - SpeedLeft);
+                if (Math.Abs(SpeedLeft) < 15) SpeedLeft = 0;
+                GlobalVar.CarTireSpeedLeft = SpeedLeft;
 
-            //跟PLC要目前高度
-            int RecviveHeight = obj_PLC.doReadDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "12");
-            GlobalVar.ForkCurrentHeight = RecviveHeight;
+                //跟PLC要目前高度
+                int RecviveHeight = obj_PLC.doReadDevice(DATABUILDERAXLibLB.DBPlcDevice.DKV3000_DM, "12");
+                GlobalVar.ForkCurrentHeight = RecviveHeight;
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+            {
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)
+            {
+                GlobalVar.CarTireSpeedRight = numericUpDown_speed_L;
+                GlobalVar.ForkCurrentHeight = numericUpDown_speed_R;
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+            {
+            }
         }
 
         private void PowerToSpeedTrans(int Power, out int HiSpeed, out int LoSpeed)
@@ -1670,27 +3081,53 @@ namespace PLC_Control
 
         private void CoordinateTransformProcess(rtAGV_Data src, ref rtAGV_Data dst)
         {
-            //定位座標轉換為車體座標資訊
-            dst.tCarInfo.tPosition.eX = src.tCarInfo.tPosition.eX;
-            dst.tCarInfo.tPosition.eY = src.tCarInfo.tPosition.eY;
-            dst.tCarInfo.eAngle = src.tCarInfo.eAngle;
 
-            rtVector L_wheelPosition;
-            rtVector R_wheelPosition;
-            rtVector Motor_Position;
+            if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)//大型車
+            {
+                //定位座標轉換為車體座標資訊
+                dst.tCarInfo.tPosition.eX = src.tCarInfo.tPosition.eX;
+                dst.tCarInfo.tPosition.eY = src.tCarInfo.tPosition.eY;
+                dst.tCarInfo.eAngle = src.tCarInfo.eAngle;
 
-            L_wheelPosition.eX = src.tCarInfo.tPosition.eX;
-            L_wheelPosition.eY = src.tCarInfo.tPosition.eY + 600;
+                rtVector L_wheelPosition;
+                rtVector R_wheelPosition;
+                rtVector Motor_Position;
 
-            R_wheelPosition.eX = src.tCarInfo.tPosition.eX;
-            R_wheelPosition.eY = src.tCarInfo.tPosition.eY - 600;
+                L_wheelPosition.eX = src.tCarInfo.tPosition.eX;
+                L_wheelPosition.eY = src.tCarInfo.tPosition.eY + 600;
 
-            Motor_Position.eX = src.tCarInfo.tPosition.eX - 1500;
-            Motor_Position.eY = src.tCarInfo.tPosition.eY;
+                R_wheelPosition.eX = src.tCarInfo.tPosition.eX;
+                R_wheelPosition.eY = src.tCarInfo.tPosition.eY - 600;
 
-            Trasform_rtVector(src.tCarInfo.tPosition, L_wheelPosition, ref dst.tCarInfo.tCarTirepositionL, src.tCarInfo.eAngle);
-            Trasform_rtVector(src.tCarInfo.tPosition, R_wheelPosition, ref dst.tCarInfo.tCarTirepositionR, src.tCarInfo.eAngle);
-            Trasform_rtVector(src.tCarInfo.tPosition, Motor_Position, ref dst.tCarInfo.tMotorPosition, src.tCarInfo.eAngle);
+                Motor_Position.eX = src.tCarInfo.tPosition.eX - 1500;
+                Motor_Position.eY = src.tCarInfo.tPosition.eY;
+
+                Trasform_rtVector(src.tCarInfo.tPosition, L_wheelPosition, ref dst.tCarInfo.tCarTirepositionL, src.tCarInfo.eAngle);
+                Trasform_rtVector(src.tCarInfo.tPosition, R_wheelPosition, ref dst.tCarInfo.tCarTirepositionR, src.tCarInfo.eAngle);
+                Trasform_rtVector(src.tCarInfo.tPosition, Motor_Position, ref dst.tCarInfo.tMotorPosition, src.tCarInfo.eAngle);
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+            {
+
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)//小型車
+            {
+                /*dst.tCarInfo.tPosition.eX = src.tCarInfo.tPosition.eX;
+                dst.tCarInfo.tPosition.eY = src.tCarInfo.tPosition.eY;
+                dst.tCarInfo.eAngle = src.tCarInfo.eAngle;
+
+                rtVector Motor_Position;
+
+                Motor_Position.eX = src.tCarInfo.tPosition.eX + 600;
+                Motor_Position.eY = src.tCarInfo.tPosition.eY + 600;
+
+                Trasform_rtVector(src.tCarInfo.tPosition, Motor_Position, ref dst.tCarInfo.tMotorPosition, src.tCarInfo.eAngle);*/
+
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+            {
+
+            }
         }
 
         private void Trasform_rtVector(rtVector Ori, rtVector src, ref rtVector dst, double degrees)
@@ -1888,16 +3325,20 @@ namespace PLC_Control
             rtAGV_Data dst = new rtAGV_Data();
 
             //讀取PLC的高度及速度資訊
-            if (DeliverData.tAGV_Data.ucAGV_Status != 0) GetFrontWheelSpeed();
-            
+            if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)//大型車
+            {
+                if (DeliverData.tAGV_Data.ucAGV_Status != 0) GetFrontWheelSpeed();
+            }
 
             //紀錄讀取完的時間
             //GlobalVar.Watch_Read_PLC_Data.Start();
             //GlobalVar.Time_Read_PLC_Data = DateTime.Now;
 
-            //計算預測座標
             double PredictAngle = 0;
+            //計算預測座標
+
             DiffTimeForAlignment(ref PredictPosition, ref PredictAngle, DeliverData.tAGV_Data.CMotor);
+
 
             src.tCarInfo.tPosition.eX = PredictPosition.eX;
             src.tCarInfo.tPosition.eY = PredictPosition.eY;
@@ -1906,34 +3347,62 @@ namespace PLC_Control
             //定位座標轉換為車體座標資訊
             CoordinateTransformProcess(src, ref dst);
 
-            //更新車體資訊
-            DeliverData.tAGV_Data.tCarInfo.tPosition.eX = PredictPosition.eX;
-            DeliverData.tAGV_Data.tCarInfo.tPosition.eY = PredictPosition.eY;
-            DeliverData.tAGV_Data.tCarInfo.eAngle = PredictAngle;
-            DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedLeft = GlobalVar.CarTireSpeedLeft;
-            DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedRight = GlobalVar.CarTireSpeedRight;
+            //if (comboBox_MachineType_Num == 0)
+            {
+                //更新車體資訊
+                DeliverData.tAGV_Data.tCarInfo.tPosition.eX = PredictPosition.eX;
+                DeliverData.tAGV_Data.tCarInfo.tPosition.eY = PredictPosition.eY;
+                DeliverData.tAGV_Data.tCarInfo.eAngle = PredictAngle;
+                DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedLeft = GlobalVar.CarTireSpeedLeft;
+                DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedRight = GlobalVar.CarTireSpeedRight;
 
-            DeliverData.tAGV_Data.tCarInfo.tCarTirepositionR.eX = dst.tCarInfo.tCarTirepositionR.eX;
-            DeliverData.tAGV_Data.tCarInfo.tCarTirepositionR.eY = dst.tCarInfo.tCarTirepositionR.eY;
-            DeliverData.tAGV_Data.tCarInfo.tCarTirepositionL.eX = dst.tCarInfo.tCarTirepositionL.eX;
-            DeliverData.tAGV_Data.tCarInfo.tCarTirepositionL.eY = dst.tCarInfo.tCarTirepositionL.eY;
-            DeliverData.tAGV_Data.tCarInfo.tMotorPosition.eX = dst.tCarInfo.tMotorPosition.eX;
-            DeliverData.tAGV_Data.tCarInfo.tMotorPosition.eY = dst.tCarInfo.tMotorPosition.eY;
+                DeliverData.tAGV_Data.tCarInfo.tCarTirepositionR.eX = dst.tCarInfo.tCarTirepositionR.eX;
+                DeliverData.tAGV_Data.tCarInfo.tCarTirepositionR.eY = dst.tCarInfo.tCarTirepositionR.eY;
+                DeliverData.tAGV_Data.tCarInfo.tCarTirepositionL.eX = dst.tCarInfo.tCarTirepositionL.eX;
+                DeliverData.tAGV_Data.tCarInfo.tCarTirepositionL.eY = dst.tCarInfo.tCarTirepositionL.eY;
+                DeliverData.tAGV_Data.tCarInfo.tMotorPosition.eX = dst.tCarInfo.tMotorPosition.eX;
+                DeliverData.tAGV_Data.tCarInfo.tMotorPosition.eY = dst.tCarInfo.tMotorPosition.eY;
 
-            /*DeliverData.tAGV_Data.tCarInfo.tPosition.eX = 17050;
-            DeliverData.tAGV_Data.tCarInfo.tPosition.eY = -950;
-            DeliverData.tAGV_Data.tCarInfo.eAngle = 90;
-            /*DeliverData.tAGV_Data.tCarInfo.tMotorPosition.eX = 17223;
-            DeliverData.tAGV_Data.tCarInfo.tMotorPosition.eY = -3058;*/
+                /*DeliverData.tAGV_Data.tCarInfo.tPosition.eX = 17050;
+                DeliverData.tAGV_Data.tCarInfo.tPosition.eY = -950;
+                DeliverData.tAGV_Data.tCarInfo.eAngle = 90;
+                /*DeliverData.tAGV_Data.tCarInfo.tMotorPosition.eX = 17223;
+                DeliverData.tAGV_Data.tCarInfo.tMotorPosition.eY = -3058;*/
 
-            //更新車Sensor資訊
-            DeliverData.tAGV_Data.tCarInfo.eWheelAngle = GlobalVar.RealMotorAngle;
-            DeliverData.tAGV_Data.tSensorData.tForkInputData.height = (int)GlobalVar.ForkCurrentHeight;
+                //更新車Sensor資訊
+                DeliverData.tAGV_Data.tCarInfo.eWheelAngle = GlobalVar.RealMotorAngle;
+                DeliverData.tAGV_Data.tSensorData.tForkInputData.height = (int)GlobalVar.ForkCurrentHeight;
 
-            /*DeliverData.tAGV_Data.tSensorData.tForkInputData.height = (int)120;
-            DeliverData.tAGV_Data.ucAGV_Status = (byte)7;*/
+                /*DeliverData.tAGV_Data.tSensorData.tForkInputData.height = (int)120;
+                DeliverData.tAGV_Data.ucAGV_Status = (byte)7;*/
+            }
+            /*else if (comboBox_MachineType_Num == 1)
+            {
+            }
+            else if (comboBox_MachineType_Num == 2)
+            {
+                DeliverData.tAGV_Data.tCarInfo.tPosition.eX = PredictPosition.eX;
+                DeliverData.tAGV_Data.tCarInfo.tPosition.eY = PredictPosition.eY;
+                DeliverData.tAGV_Data.tCarInfo.eAngle = PredictAngle;
+                DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedLeft = GlobalVar.CarTireSpeedLeft;
+                DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedRight = GlobalVar.CarTireSpeedRight;
+
+                DeliverData.tAGV_Data.tCarInfo.tCarTirepositionR.eX = dst.tCarInfo.tCarTirepositionR.eX;
+                DeliverData.tAGV_Data.tCarInfo.tCarTirepositionR.eY = dst.tCarInfo.tCarTirepositionR.eY;
+                DeliverData.tAGV_Data.tCarInfo.tCarTirepositionL.eX = dst.tCarInfo.tCarTirepositionL.eX;
+                DeliverData.tAGV_Data.tCarInfo.tCarTirepositionL.eY = dst.tCarInfo.tCarTirepositionL.eY;
+                DeliverData.tAGV_Data.tCarInfo.tMotorPosition.eX = dst.tCarInfo.tMotorPosition.eX;
+                DeliverData.tAGV_Data.tCarInfo.tMotorPosition.eY = dst.tCarInfo.tMotorPosition.eY;
+
+                DeliverData.tAGV_Data.tCarInfo.eWheelAngle = GlobalVar.RealMotorAngle;
+                DeliverData.tAGV_Data.tSensorData.tForkInputData.height = (int)GlobalVar.ForkCurrentHeight;
+            }
+            else if (comboBox_MachineType_Num == 3)
+            {
+            }*/
         }
 
+        int Main_Moter_Ctrl = 2;
         //更新資訊給執行緒
         public void UpdataDeliverFlowData(object sender, EventArgs e)
         {
@@ -1945,27 +3414,88 @@ namespace PLC_Control
             int LoSpeed = 0;
 
             //更新車輛資訊
-            UpdateDeliverData();
 
-            //餵給執行緒更新資料
-            ThreatPara.ThreadParameter = DeliverData;
+            //if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)//大型車
+            {
+                UpdateDeliverData();
 
-            //避免間隔時間過短
-            Task.Delay(1);
+                //餵給執行緒更新資料
+                ThreatPara.ThreadParameter = DeliverData;
 
-            //監聽貨叉是否需要執行動做，並紀錄Log
-            rtAGVAndMainHandshake();
+                //避免間隔時間過短
+                Task.Delay(1);
+
+                //監聽貨叉是否需要執行動做，並紀錄Log
+                rtAGVAndMainHandshake();
+            }
+            /*else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+            {
+
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)//小型車
+            {
+                UpdateDeliverData();
+
+                //餵給執行緒更新資料
+                ThreatPara.ThreadParameter = DeliverData;
+
+                //避免間隔時間過短
+                Task.Delay(1);
+
+                //監聽貨叉是否需要執行動做，並紀錄Log
+                rtAGVAndMainHandshake();
+            }
+            else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+            {
+
+            }*/
 
             //執行角度與Power數值
             AngleProcess(DeliverData.tAGV_Data.CMotor.tMotorData.lMotorAngle);
 
-            
-
-            if (DeliverData.tAGV_Data.CMotor.tMotorData.lMotorPower == 0) MoveStop();
+            if (DeliverData.tAGV_Data.CMotor.tMotorData.lMotorPower == 0 )
+            {
+                if (Main_Moter_Ctrl != 2)
+                {
+                    Main_Moter_Ctrl = 2;
+                    //MoveStop();
+                }
+            }
             else
             {
-                PowerToSpeedTrans(DeliverData.tAGV_Data.CMotor.tMotorData.lMotorPower, out HiSpeed, out LoSpeed);
-                SendToPowerMotor(HiSpeed, LoSpeed);
+                if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)
+                {
+                    PowerToSpeedTrans(DeliverData.tAGV_Data.CMotor.tMotorData.lMotorPower, out HiSpeed, out LoSpeed);
+                    SendToPowerMotor(HiSpeed, LoSpeed);
+                }
+                else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+                {
+                }
+                else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)
+                {
+                    if (DeliverData.tAGV_Data.CMotor.tMotorData.lMotorPower >= 0 )//&& Main_Moter_Ctrl != 0)
+                        {
+
+                            Main_Moter_Ctrl = 0;
+                            MoveStop(); //SCarMoveStop(1);*/
+                            Thread.Sleep(100);
+                            CarMove("Forward");//前
+                            Thread.Sleep(50);
+                            
+                        }
+                    else if (DeliverData.tAGV_Data.CMotor.tMotorData.lMotorPower < 0 )//&& Main_Moter_Ctrl != 1)
+                        {
+                            Main_Moter_Ctrl = 1;
+                            MoveStop(); //SCarMoveStop(1);
+                            Thread.Sleep(100);
+                            CarMove("Back");//後
+                            Thread.Sleep(50);
+                            
+                        }
+                }
+                else if (comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+                {
+                }
             }
             //Console.WriteLine("lMotorPower: " + DeliverData.tAGV_Data.CMotor.tMotorData.lMotorPower);
             //GlobalVar.Watch_Read_PLC_Data.Stop();
@@ -2180,9 +3710,9 @@ namespace PLC_Control
 
             if (DeliverFlowTimer.Enabled == false)//開啟重量timer
             {
-                if (DeliverFlowTimer.Interval != 40)
+                if (DeliverFlowTimer.Interval != 70)
                 {
-                    DeliverFlowTimer.Interval = 40;
+                    DeliverFlowTimer.Interval = 70;
                     DeliverFlowTimer.Elapsed += new System.Timers.ElapsedEventHandler(UpdataDeliverFlowData);
                 }
             }
@@ -2330,6 +3860,7 @@ namespace PLC_Control
 
         private void btnDoCmd_Click(object sender, EventArgs e)
         {
+            //txtSrcRegion.Text = ;
             if (txtAgvID.Text == "" || txtSrcRegion.Text == "" || txtSrcPosition.Text == "" || txtDstPosition.Text == "" || txtDstRegion.Text == "")
             {
                 MessageBox.Show("請輸入完整資訊");
@@ -2352,9 +3883,9 @@ namespace PLC_Control
 
             if (DeliverFlowTimer.Enabled == false)//開啟更新車體資訊Timer
             {
-                if (DeliverFlowTimer.Interval != 40)
+                if (DeliverFlowTimer.Interval != 150)
                 {
-                    DeliverFlowTimer.Interval = 40;
+                    DeliverFlowTimer.Interval = 150;
                     DeliverFlowTimer.Elapsed += new System.Timers.ElapsedEventHandler(UpdataDeliverFlowData);
                 }
                 TimerReceivePLC_Data.Enabled = false;//關閉一直與PLC取資訊
@@ -2388,9 +3919,9 @@ namespace PLC_Control
 
             if (DeliverFlowTimer.Enabled == false)//開啟更新車體資訊Timer
             {
-                if (DeliverFlowTimer.Interval != 40)
+                if (DeliverFlowTimer.Interval != 150)
                 {
-                    DeliverFlowTimer.Interval = 40;
+                    DeliverFlowTimer.Interval = 150;
                     DeliverFlowTimer.Elapsed += new System.Timers.ElapsedEventHandler(UpdataDeliverFlowData);
                 }
                 TimerReceivePLC_Data.Enabled = false;//關閉一直與PLC取資訊
@@ -2527,25 +4058,65 @@ namespace PLC_Control
             AdvBusFunc.isSend = true;
         }
 
+        int MachineType_SelectionChangeCommitted = 1;
+        public static int comboBox_MachineType_Num = 0;
+        static int numericUpDown_speed_L = 0, numericUpDown_speed_R = 0;
+
         private void comboBox_MachineType_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            if (comboBox_MachineType.SelectedIndex == 0)
+            if (comboBox_MachineType.SelectedIndex == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)
             {
                 DeliverData.rtAGV_Chang_Type_Self_Carriage(1);
+                comboBox_MachineType_Num = (byte)rtAGV_Control.Type_Self_Carriage.BigCar;
             }
-            else if (comboBox_MachineType.SelectedIndex == 1)
+            else if (comboBox_MachineType.SelectedIndex == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
             {
                 DeliverData.rtAGV_Chang_Type_Self_Carriage(2);
+                comboBox_MachineType_Num = (byte)rtAGV_Control.Type_Self_Carriage.MediumCar;
             }
-            else if (comboBox_MachineType.SelectedIndex == 2)
+            else if (comboBox_MachineType.SelectedIndex == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)
             {
                 DeliverData.rtAGV_Chang_Type_Self_Carriage(3);
+                comboBox_MachineType_Num = (byte)rtAGV_Control.Type_Self_Carriage.SmallCar;
             }
-            else if (comboBox_MachineType.SelectedIndex == 3)
+            else if (comboBox_MachineType.SelectedIndex == (byte)rtAGV_Control.Type_Self_Carriage.Other)
             {
                 DeliverData.rtAGV_Chang_Type_Self_Carriage(4);
+                comboBox_MachineType_Num = (byte)rtAGV_Control.Type_Self_Carriage.Other;
             }
             ForkliftControl_Init();
+            MachineType_SelectionChangeCommitted = 1;
+        }
+
+        private void btn_speed_Click(object sender, EventArgs e)
+        {
+            int RS485_Speed = (int)numericUpDown_speed.Value;
+
+            SCarmodify_speed(RS485_Speed, 0);
+            /*SendData_speed[0] = 0x00;   //兩輪一起下
+            SendData_speed[1] = 0x10;   //寫入數個保持寄存器
+            SendData_speed[2] = 0x04;
+            SendData_speed[3] = 0x80;
+            SendData_speed[4] = 0x00;
+            SendData_speed[5] = 0x02;
+            SendData_speed[6] = 0x04;   //詢問的寄存器數的兩倍的值
+            SendData_speed[7] = 0x00;
+            SendData_speed[8] = 0x00;
+            SendData_speed[9] = Convert.ToByte(Front_Str_RS485_Speed, 16);
+            SendData_speed[10] = Convert.ToByte(Rear_Str_RS485_Speed, 16);
+
+            byte[] byteArray_speed = BitConverter.GetBytes(ModRTU_CRC(SendData_speed, 11));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_speed[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_speed[1], 16));
+            SendData_speed[11] = byteArray_speed[0];
+            SendData_speed[12] = byteArray_speed[1];
+            comport.Write(SendData_speed, 0, SendData_speed.Length);
+            Thread.Sleep(50);
+
+            SCarDataConfiguration();
+            //DataSaveToNV();
+
+            Speed_ASK = 1;*/
         }
     }
 

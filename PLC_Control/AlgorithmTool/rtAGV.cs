@@ -13,8 +13,6 @@ using System.Text;
 using Others;
 using LidarTool;
 
-using System.IO.Ports; //使用於RS485
-
 namespace AlgorithmTool
 {
     /// <summary> 
@@ -130,7 +128,7 @@ namespace AlgorithmTool
 		/** \brief InOutput Data: Sensor Data   */
         public rtAGV_SensorData tSensorData;
 
-
+        public byte ucCar_Status;
 
         /// <summary> 
         /// inital of AGV output data </summary>
@@ -164,6 +162,15 @@ namespace AlgorithmTool
             Other = 3,
         };
 
+
+        /*public enum SCarStatus
+        {
+            Straight = 0,
+            Backwards = 1,
+            Clockwise = 2,
+            Counterclockwise = 3,
+            Stop = 4,
+        };*/
 
 		/** \brief Define: 算路徑時判斷是否已在終點   */
         public const int ARRIVE_CHECK_NEAR = 50;
@@ -210,6 +217,12 @@ namespace AlgorithmTool
 		/** \brief Output Data: check if Wheel Angle is safe   */
         bool bCheckWheelAngle;
 
+        /** \brief car left Tire speed   */
+        public double SCarTireSpeedLeft;
+
+        /** \brief car right Tire speed   */
+        public double SCarTireSpeedRight;
+
         Ini AGV_Ini = new Ini();
 
         /// <summary> 初始化用 建構函式 </summary>
@@ -223,25 +236,37 @@ namespace AlgorithmTool
             Reset(this);
         }
 
+        //修改速度(小車用)
+        public void SModifySpeed(int CarTireSpeed, int LorR)
+        {
+            if (LorR == 1)
+            {
+                tAGV_Data.tCarInfo.eCarTireSpeedLeft = CarTireSpeed;
+            }
+            else
+            {
+                tAGV_Data.tCarInfo.eCarTireSpeedRight = CarTireSpeed;
+            }
+        }
 
-
+        //車種分類
         public void rtAGV_Chang_Type_Self_Carriage(int number)
         {
-            if (number == 1)
+            if (number == (byte)Type_Self_Carriage.BigCar)
             {
-                tAGV_Data.ucAGV_Status = (byte)Type_Self_Carriage.BigCar;
+                tAGV_Data.ucCar_Status = (byte)Type_Self_Carriage.BigCar;
             }
-            else if (number == 2)
+            else if (number == (byte)Type_Self_Carriage.MediumCar)
             {
-                tAGV_Data.ucAGV_Status = (byte)Type_Self_Carriage.MediumCar;
+                tAGV_Data.ucCar_Status = (byte)Type_Self_Carriage.MediumCar;
             }
-            else if (number == 3)
+            else if (number == (byte)Type_Self_Carriage.SmallCar)
             {
-                tAGV_Data.ucAGV_Status = (byte)Type_Self_Carriage.SmallCar;
+                tAGV_Data.ucCar_Status = (byte)Type_Self_Carriage.SmallCar;
             }
-            else if (number == 4)
+            else if (number == (byte)Type_Self_Carriage.Other)
             {
-                tAGV_Data.ucAGV_Status = (byte)Type_Self_Carriage.Other;
+                tAGV_Data.ucCar_Status = (byte)Type_Self_Carriage.Other;
             }
         }
 
@@ -367,7 +392,7 @@ namespace AlgorithmTool
         public void rtAGV_MotorCtrl(ref rtPath_Info[] a_atPathInfo, double a_eDirection, bool a_bAligmentFree)
         {   // 一定要傳path 因為 path 不一定是agv裡面送貨用的 有可能是 取放貨時前進後退用的
 
-            switch (tAGV_Data.ucAGV_Status)
+            switch (tAGV_Data.ucCar_Status)
             {
                 // 導航到停車處
                 case (byte)Type_Self_Carriage.BigCar:   // 大型車
@@ -497,7 +522,6 @@ namespace AlgorithmTool
             }
         }
 
-        SerialPort comport;
         //小型車
         public void rtAGV_MotorCtrl_SmallCar(rtPath_Info[] a_atPathInfo, double a_eDirection, bool a_bAligmentFree)
         {
@@ -574,31 +598,14 @@ namespace AlgorithmTool
             // 正常控制
             if (a_atPathInfo[tAGV_Data.CMotor.tMotorData.lPathNodeIndex].ucStatus == (byte)rtPath_Info.rtStatus.STRAIGHT)
             {   //  走直線
-
-                comport = new SerialPort("COM4", 9600, Parity.None, 8, StopBits.One);
-                Byte[] buffer = new Byte[8];
-                buffer[0] = 0x00;
-                buffer[1] = 0x00;
-                buffer[2] = 0x00;
-                buffer[3] = 0x00;
-                buffer[4] = 0x01;
-                buffer[5] = 0x00;
-                buffer[6] = 0x00;
-                buffer[7] = 0x00;
-                if (!comport.IsOpen)
-                {
-                    comport.Open();
-                }
-
-                comport.Write(buffer, 0, buffer.Length);
-                //comport.Close();//關閉程式用
+                //MainForm.SCarForward(100,100);
 
                 //關閉大車馬達功能
                 // decide Motor Power
-                //tAGV_Data.CMotor.MotorPower_CtrlNavigateStraight(a_atPathInfo, tAGV_Data.tCarInfo);
+                tAGV_Data.CMotor.MotorPower_CtrlNavigateStraight(a_atPathInfo, tAGV_Data.tCarInfo);
 
                 // decide Motor Angle
-                //tAGV_Data.CMotor.MotorAngle_CtrlNavigateStraight(a_atPathInfo, tAGV_Data.tCarInfo);
+                tAGV_Data.CMotor.MotorAngle_CtrlNavigateStraight(a_atPathInfo, tAGV_Data.tCarInfo);
                 return;
             }
 
@@ -782,6 +789,9 @@ namespace AlgorithmTool
             a_tVar_2 = tVarTmp;
         }
 
+
+        public static WarehousPos tWarehousPos_AGV = new WarehousPos();
+
         /// <summary>
         /// Obtain Warehouse information like Position and direction from command 
         /// </summary>
@@ -795,15 +805,22 @@ namespace AlgorithmTool
             {   // for load
                 tWarehousPos.lRegion = (int)((ullAGV_Cmd >> SRC_REGION) & MASK);
                 tWarehousPos.lIndex = (int)((ullAGV_Cmd >> SRC_POSITION) & MASK);
+
+                tWarehousPos_AGV.lRegion = (int)((ullAGV_Cmd >> SRC_REGION) & MASK);
+                tWarehousPos_AGV.lIndex = (int)((ullAGV_Cmd >> SRC_POSITION) & MASK);
             }
             else
             {   // for unload
                 tWarehousPos.lRegion = (int)((ullAGV_Cmd >> DEST_REGION) & MASK);
                 tWarehousPos.lIndex = (int)((ullAGV_Cmd >> DEST_POSITION) & MASK);
+
+                tWarehousPos_AGV.lRegion = (int)((ullAGV_Cmd >> SRC_REGION) & MASK);
+                tWarehousPos_AGV.lIndex = (int)((ullAGV_Cmd >> SRC_POSITION) & MASK);
             }
 
             // 取得倉儲方向
             tWarehousPos.eDirection = tIS_Cfg.tMapCfg.atRegionCfg[tWarehousPos.lRegion].atWarehouseCfg[tWarehousPos.lIndex].eDirection;
+            tWarehousPos_AGV.eDirection = tIS_Cfg.tMapCfg.atRegionCfg[tWarehousPos.lRegion].atWarehouseCfg[tWarehousPos.lIndex].eDirection;
             return tWarehousPos;
         }
 
@@ -950,6 +967,7 @@ namespace AlgorithmTool
                         // 取貨
                         case (byte)rtAGVStatus.LOAD:
                             Storage(tWarehousPos);
+                            //MoveStop();
                             if (tAGV_Data.bEmergency == false)
                             {
                                 tAGV_Data.ucAGV_Status = (byte)rtAGVStatus.STANDBY;
@@ -1495,11 +1513,118 @@ namespace AlgorithmTool
         /// </summary>
         public void EmergencyStop()
         {
-            // 初始化 motor & fork control Class
-            tAGV_Data.CFork = new rtForkCtrl();
-            tAGV_Data.CMotor = new rtMotorCtrl();
+            switch (tAGV_Data.ucCar_Status)
+            {
+                // 導航到停車處
+                case (byte)Type_Self_Carriage.BigCar:   // 大型車
+                    // 初始化 motor & fork control Class
+                    tAGV_Data.CFork = new rtForkCtrl();
+                    tAGV_Data.CMotor = new rtMotorCtrl();
+                    break;
+                case (byte)Type_Self_Carriage.SmallCar:   // 小型車
+                    MainForm.SCarMoveStop(1);
+                    break;
+                case (byte)Type_Self_Carriage.MediumCar:   // 中型車
+
+                    break;
+                case (byte)Type_Self_Carriage.Other:   // 其他車
+
+                    break;
+                default:
+                    // show error msg
+                    break;
+            }
             return;
         }
+
+
+        /*public void DataCCW()
+        {
+            MainForm.DeliverData
+        }*/
+
+        /*static SerialPort comport;//小車馬達用
+        static byte[] SendData_CW = new byte[13];
+
+        public static int rtRS485_Connect(string CB_COM)
+        {
+
+            comport = new SerialPort(CB_COM, 19200, Parity.Even, 8, StopBits.One);
+            comport.Open();
+            //AGV_Ini.Read_ini_Cfg3();
+            // 載入設定擋做初始化，設定擋名稱先hard code
+            //Reset(this);
+            return 1;
+        }
+
+
+
+        //修改車輪CW控制
+        public static void DataCCW(int left_OR_right, int CW)//static
+        {
+
+            if (left_OR_right == 1)
+            {
+                SendData_CW[0] = 0x01;   //兩輪一起下
+            }
+            else if (left_OR_right == 2)
+            {
+                SendData_CW[0] = 0x02;   //兩輪一起下
+            }
+            else
+            {
+                SendData_CW[0] = 0x00;   //兩輪一起下
+            }
+            SendData_CW[1] = 0x10;   //寫入數個保持寄存器
+            SendData_CW[2] = 0x03;
+            SendData_CW[3] = 0x84;
+            SendData_CW[4] = 0x00;
+            SendData_CW[5] = 0x02;
+            SendData_CW[6] = 0x04;   //詢問的寄存器數的兩倍的值
+            SendData_CW[7] = 0x00;
+            SendData_CW[8] = 0x00;
+            SendData_CW[9] = 0x00;
+
+            if (CW == 0)
+            {
+                SendData_CW[10] = 0x00;
+            }
+            else //if (CW == 1)
+            {
+                SendData_CW[10] = 0x01;
+            }
+
+            byte[] byteArray_CW = BitConverter.GetBytes(ModRTU_CRC(SendData_CW, 11));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_CW[0], 16));
+            Console.WriteLine("0x{0}", Convert.ToString(byteArray_CW[1], 16));
+            SendData_CW[11] = byteArray_CW[0];
+            SendData_CW[12] = byteArray_CW[1];
+            //comport.Write(SendData_CW, 0, SendData_CW.Length);
+            Thread.Sleep(50);
+        }
+
+        static UInt16 ModRTU_CRC(byte[] buf, int len)
+        {
+            UInt16 crc = 0xFFFF;
+            for (int pos = 0; pos < len; pos++)
+            {
+                crc ^= (UInt16)buf[pos];          // XOR byte into least sig. byte of crc
+
+                for (int i = 8; i != 0; i--)
+                {    // Loop over each bit
+                    if ((crc & 0x0001) != 0)
+                    {     // If the LSB is set
+                        crc >>= 1;                    // Shift right and XOR 0xA001
+                        crc ^= 0xA001;
+                    }
+                    else                            // Else LSB is not set
+                        crc >>= 1;                    // Just shift right
+                }
+            }
+            // Note, this number has low and high bytes swapped, so use it accordingly (or swap bytes)
+            return crc;
+        }*/
+
     }
 	
 	public class rtAGV_communicate

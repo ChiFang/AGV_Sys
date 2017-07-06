@@ -243,6 +243,7 @@ namespace LidarTool
                             //if (BanRegion.DetectRegionX1 < Data.X[index] && Data.X[index] < BanRegion.DetectRegionX2 && BanRegion.DetectRegionY1 < Data.Y[index] && Data.Y[index] < BanRegion.DetectRegionY2 && BanRegion.DetectRegionZ1 < Data.Z[index] && Data.Z[index] < BanRegion.DetectRegionZ2)
                             if (radius < WarningCircleRegion.Radius && radius < AlarmCircleRegion.Radius && radius > 1)
                             {
+                                //當在警戒範圍內時(降速)
                                 AlarmObData.ObstaclePosX.Add(Data.X[index]);
                                 AlarmObData.ObstaclePosY.Add(Data.Y[index]);
                                 AlarmObData.ObstaclePosZ.Add(Data.Z[index]);
@@ -250,6 +251,7 @@ namespace LidarTool
                             }
                             else if (radius < WarningCircleRegion.Radius && radius > AlarmCircleRegion.Radius && radius > 1)
                             {
+                                //當在危險範圍內時(停止)
                                 WarningObData.ObstaclePosX.Add(Data.X[index]);
                                 WarningObData.ObstaclePosY.Add(Data.Y[index]);
                                 WarningObData.ObstaclePosZ.Add(Data.Z[index]);

@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Windows.Forms;
 using System.Threading;
 using Others;
+using AlgorithmTool;
 
 namespace NavigationTool
 {
@@ -52,22 +53,26 @@ namespace NavigationTool
         /** \brief NAV350收資料Timer   */
         public System.Timers.Timer TimerNavGetLocation = new System.Timers.Timer();
 
+        public int Car_Number;
+
         /// <summary>
         /// NAV連線
         /// </summary>
         /// <param name="txtNAVIP">[IN] NAV IP</param>
         /// <param name="txtNAVPort">[IN] NAVPort</param>
         /// <returns>連線成功回傳"連線成功"，否則回傳"連線失敗"</returns>
-        public string NAVConnect(string txtNAVIP, string txtNAVPort)
+        public string NAVConnect(string txtNAVIP, string txtNAVPort, int CarNumber)
         {
             //執行連線
             try
             {
+                Car_Number = CarNumber;
                 if (ConnectNAV(txtNAVIP, txtNAVPort))
                 {
                     //開執行序監聽資料
                     Thread DoThread = new Thread(new ParameterizedThreadStart(DoNavFunction));
                     DoThread.Start();
+
                     return "連線成功";
                 }
                 else return "連線失敗";
@@ -116,53 +121,127 @@ namespace NavigationTool
 
                     CheckReceiveData(Receive);
 
-                    //車輛後輪中心點位置
-                    GlobalVar.MotorPosition = CrrentLocation;
 
-                    //車輛前輪中心點位置
-                    TFrontCenterLocation.LocationX = CrrentLocation.LocationX + 1500;
-                    TFrontCenterLocation.LocationY = CrrentLocation.LocationY;
-                    TrasformCoordinate(CrrentLocation, TFrontCenterLocation, TFrontCenterLocation, CrrentLocation.Direction);
-                    TFrontCenterLocation.Direction = CrrentLocation.Direction;
-                    GlobalVar.CurrentPosition = TFrontCenterLocation;
-
-                    //右前輪中心點位置
-                    TFrontRightLocation.LocationX = CrrentLocation.LocationX + 1500;
-                    TFrontRightLocation.LocationY = CrrentLocation.LocationY - 600;
-                    TrasformCoordinate(CrrentLocation, TFrontRightLocation, TFrontRightLocation, CrrentLocation.Direction);
-                    GlobalVar.CarTirepositionR = TFrontRightLocation;
-
-                    //左前輪中心點位置
-                    TFrontLeftLocation.LocationX = CrrentLocation.LocationX + 1500;
-                    TFrontLeftLocation.LocationY = CrrentLocation.LocationY + 600;
-                    TrasformCoordinate(CrrentLocation, TFrontLeftLocation, TFrontLeftLocation, CrrentLocation.Direction);
-                    GlobalVar.CarTirepositionL = TFrontLeftLocation;
-
-                    //NAV TimeStamp資訊  
-                    NAVTimeStamp = NavTimeStamp;
-
-                    if (NAVTimeStamp != "")
+                    if (Car_Number == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)
                     {
-                        NAVTimeStamp = "0x" + NAVTimeStamp.ToString();
-                        NAVTimeStamp = NAVTimeStamp.Substring(0, NAVTimeStamp.Length - 1);
+                        //車輛後輪中心點位置
+                        GlobalVar.MotorPosition = CrrentLocation;
+
+                        //車輛前輪中心點位置
+                        TFrontCenterLocation.LocationX = CrrentLocation.LocationX + 1500;
+                        TFrontCenterLocation.LocationY = CrrentLocation.LocationY;
+                        TrasformCoordinate(CrrentLocation, TFrontCenterLocation, TFrontCenterLocation, CrrentLocation.Direction);
+                        TFrontCenterLocation.Direction = CrrentLocation.Direction;
+                        GlobalVar.CurrentPosition = TFrontCenterLocation;
+
+                        //右前輪中心點位置
+                        TFrontRightLocation.LocationX = CrrentLocation.LocationX + 1500;
+                        TFrontRightLocation.LocationY = CrrentLocation.LocationY - 600;
+                        TrasformCoordinate(CrrentLocation, TFrontRightLocation, TFrontRightLocation, CrrentLocation.Direction);
+                        GlobalVar.CarTirepositionR = TFrontRightLocation;
+
+                        //左前輪中心點位置
+                        TFrontLeftLocation.LocationX = CrrentLocation.LocationX + 1500;
+                        TFrontLeftLocation.LocationY = CrrentLocation.LocationY + 600;
+                        TrasformCoordinate(CrrentLocation, TFrontLeftLocation, TFrontLeftLocation, CrrentLocation.Direction);
+                        GlobalVar.CarTirepositionL = TFrontLeftLocation;
+
+
+                        //NAV TimeStamp資訊  
+                        NAVTimeStamp = NavTimeStamp;
+
+                        if (NAVTimeStamp != "")
+                        {
+                            NAVTimeStamp = "0x" + NAVTimeStamp.ToString();
+                            NAVTimeStamp = NAVTimeStamp.Substring(0, NAVTimeStamp.Length - 1);
+                        }
+                        if (Receive.IndexOf("sAN mNPOSGetPose") != -1)
+                        {
+                            NAVSpeed_X = (CrrentLocation.LocationX - LastLocation.LocationX) * 7;
+                            NAVSpeed_Y = (CrrentLocation.LocationY - LastLocation.LocationY) * 7;
+
+                            int CrrDir = CrrentLocation.Direction;
+                            int LasDir = LastLocation.Direction;
+                            if (CrrDir > 180) CrrDir = -(360 - CrrDir);
+                            if (LasDir > 180) LasDir = -(360 - LasDir);
+                            NAVSpeedDirection = (CrrDir - LasDir) * 7000;
+
+                            LastLocation.Direction = CrrentLocation.Direction;
+                            LastLocation.LocationX = CrrentLocation.LocationX;
+                            LastLocation.LocationY = CrrentLocation.LocationY;
+                        }
                     }
-                    if (Receive.IndexOf("sAN mNPOSGetPose") != -1)
+                    else if (Car_Number == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
                     {
-                        NAVSpeed_X = (CrrentLocation.LocationX - LastLocation.LocationX) * 7;
-                        NAVSpeed_Y = (CrrentLocation.LocationY - LastLocation.LocationY) * 7;
+                    }
+                    else if (Car_Number == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)
+                    {
+                        //車輛兩輪中心點位置
+                        
+                        GlobalVar.MotorPosition = CrrentLocation;
+                        //rtCarData.eCarTireSpeedLeft;
+                        //tAGV_Data.tCarInfo.eCarTireSpeedLeft;
 
-                        int CrrDir = CrrentLocation.Direction;
-                        int LasDir = LastLocation.Direction;
-                        if (CrrDir > 180) CrrDir = -(360 - CrrDir);
-                        if (LasDir > 180) LasDir = -(360 - LasDir);
-                        NAVSpeedDirection = (CrrDir - LasDir) * 7000;
+                        //tAGV_Data.tCarInfo.eCarTireSpeedRight;
+                        //車輛後輪中心點位置
+                        GlobalVar.MotorPosition = CrrentLocation;
 
-                        LastLocation.Direction = CrrentLocation.Direction;
-                        LastLocation.LocationX = CrrentLocation.LocationX;
-                        LastLocation.LocationY = CrrentLocation.LocationY;
+                        //車輛前輪中心點位置
+                        TFrontCenterLocation.LocationX = (int)(CrrentLocation.LocationX + 600 * Math.Cos((CrrentLocation.Direction * Math.PI) / 180));
+                        TFrontCenterLocation.LocationY = (int)(CrrentLocation.LocationY + 600 * Math.Sin((CrrentLocation.Direction * Math.PI) / 180));
+
+                        /*TFrontCenterLocation.LocationX = CrrentLocation.LocationX;
+                        TFrontCenterLocation.LocationY = CrrentLocation.LocationY;*/
+                        TrasformCoordinate(CrrentLocation, TFrontCenterLocation, TFrontCenterLocation, CrrentLocation.Direction);
+                        TFrontCenterLocation.Direction = CrrentLocation.Direction;
+                        GlobalVar.CurrentPosition = TFrontCenterLocation;
+
+                        //右前輪中心點位置
+                        /*TFrontRightLocation.LocationX = CrrentLocation.LocationX + 1500;
+                        TFrontRightLocation.LocationY = CrrentLocation.LocationY - 600;
+                        TrasformCoordinate(CrrentLocation, TFrontRightLocation, TFrontRightLocation, CrrentLocation.Direction);
+                        GlobalVar.CarTirepositionR = TFrontRightLocation;
+
+                        //左前輪中心點位置
+                        TFrontLeftLocation.LocationX = CrrentLocation.LocationX + 1500;
+                        TFrontLeftLocation.LocationY = CrrentLocation.LocationY + 600;
+                        TrasformCoordinate(CrrentLocation, TFrontLeftLocation, TFrontLeftLocation, CrrentLocation.Direction);
+                        GlobalVar.CarTirepositionL = TFrontLeftLocation;*/
+
+
+
+                        //NAV TimeStamp資訊  
+                        NAVTimeStamp = NavTimeStamp;
+
+                        if (NAVTimeStamp != "")
+                        {
+                            NAVTimeStamp = "0x" + NAVTimeStamp.ToString();
+                            NAVTimeStamp = NAVTimeStamp.Substring(0, NAVTimeStamp.Length - 1);
+                        }
+                        if (Receive.IndexOf("sAN mNPOSGetPose") != -1)
+                        {
+                            NAVSpeed_X = (CrrentLocation.LocationX - LastLocation.LocationX) * 7;
+                            NAVSpeed_Y = (CrrentLocation.LocationY - LastLocation.LocationY) * 7;
+
+                            int CrrDir = CrrentLocation.Direction;
+                            int LasDir = LastLocation.Direction;
+                            if (CrrDir > 180) CrrDir = -(360 - CrrDir);
+                            if (LasDir > 180) LasDir = -(360 - LasDir);
+                            NAVSpeedDirection = (CrrDir - LasDir) * 7000;
+
+                            LastLocation.Direction = CrrentLocation.Direction;
+                            LastLocation.LocationX = CrrentLocation.LocationX;
+                            LastLocation.LocationY = CrrentLocation.LocationY;
+                        }
+
+
+                    }
+                    else if (Car_Number == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+                    {
                     }
                     //紀錄收到Sensor資料的時間
                     GlobalVar.NavTimeStamp = DateTime.Now;
+
                 }
             }
         }
