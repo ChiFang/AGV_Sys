@@ -18,11 +18,11 @@ namespace AlgorithmTool
         public const int EMPTY_DATA = 99999;
 
         /// <summary> Path Planning for AGV navigation </summary>
-        /// <param name="a_tRegionData">[IN] current region data</param>
-        /// <param name="a_lWarehousIndex">[IN] current Warehouse index </param>
-        /// <param name="a_atPathInfo">[INOUT] Path data </param>
-        /// <param name="a_tCarInfo">[IN] car data </param>
-        /// <param name="a_atObstacle">[IN] Obstacle data </param>
+        /// <param name="a_tRegionData">[IN] current region data 當前區域數據 </param>
+        /// <param name="a_lWarehousIndex">[IN] current Warehouse index 當前櫃位數據 </param>
+        /// <param name="a_atPathInfo">[INOUT] Path data 路徑數據 </param>
+        /// <param name="a_tCarInfo">[IN] car data 車子數據 </param>
+        /// <param name="a_atObstacle">[IN] Obstacle data 障礙數據 </param>
         public static void rtAGV_PathPlanning(
             RegionOfMap a_tRegionData, int a_lWarehousIndex,
             ref rtPath_Info[] a_atPathInfo, ref rtCarData a_tCarInfo, ROI[] a_atObstacle)
@@ -51,7 +51,7 @@ namespace AlgorithmTool
                 }
             }
 #endif
-            // already in same region
+            // already in same region(確保在同一個區域)
             lNodeNum = a_tRegionData.lNodeNum;
             rtAGV_FindPathNode2Dest(
                 tNodeId.lIndex, a_lWarehousIndex,
@@ -60,8 +60,8 @@ namespace AlgorithmTool
 
 
         /// <summary> 搜尋最靠近車體位置的節點 </summary>
-        /// <param name="a_atNode">[IN] node list </param>
-        /// <param name="a_tCarInfo">[IN] car information </param>
+        /// <param name="a_atNode">[IN] node list 節點列表 </param>
+        /// <param name="a_tCarInfo">[IN] car information 車子數據 </param>
         /// <returns> The closest node </returns>
         public static NodeId rtAGV_FindCurrentNode(rtNode[] a_atNode, rtCarData a_tCarInfo)
         {
@@ -80,13 +80,13 @@ namespace AlgorithmTool
         }
 
         /// <summary> Find Node list of Path to Destination </summary>
-        /// <param name="a_lSrc">[IN] source node </param>
-        /// <param name="a_lDst">[IN] Destination node </param>
-        /// <param name="a_atNode">[IN] node information in current region </param>
-        /// <param name="a_alMapCurrent">[IN] look up table of node in current region </param>
-        /// <param name="a_lNodeNum">[IN] node number in current region </param>
-        /// <param name="a_lPathLength">[INOUT] wanted path size </param>
-        /// <param name="a_atPathInfo">[INOUT] wanted path </param>
+        /// <param name="a_lSrc">[IN] source node 出發節點 </param>
+        /// <param name="a_lDst">[IN] Destination node 目標節點 </param>
+        /// <param name="a_atNode">[IN] node information in current region 當前區域的節點信息 </param>
+        /// <param name="a_alMapCurrent">[IN] look up table of node in current region 查找當前區域中的節點表 </param>
+        /// <param name="a_lNodeNum">[IN] node number in current region 當前區域的節點號 </param>
+        /// <param name="a_lPathLength">[INOUT] wanted path size 算出路徑陣列大小 </param>
+        /// <param name="a_atPathInfo">[INOUT] wanted path 算出路徑陣列 </param>
         public static void rtAGV_FindPathNode2Dest(int a_lSrc, int a_lDst, rtNode[] a_atNode, int[] a_alMapCurrent, int a_lNodeNum, ref int a_lPathLength, ref rtPath_Info[] a_atPathInfo)
         {
             int lCnt = 0;
@@ -164,11 +164,11 @@ namespace AlgorithmTool
         }
 
         /// <summary> Find shortest PATH </summary>
-        /// <param name="a_lSrc">[IN] source node </param>
-        /// <param name="a_lDst">[IN] Destination node </param>
-        /// <param name="a_alMapCurrent">[IN] look up table of node in current region </param>
-        /// <param name="a_lNodeNum">[IN] node number in current region </param>
-        /// <param name="a_lPathLength">[INOUT] wanted path size </param>
+        /// <param name="a_lSrc">[IN] source node 起始節點 </param>
+        /// <param name="a_lDst">[IN] Destination node 目標節點 </param>
+        /// <param name="a_alMapCurrent">[IN] look up table of node in current region 查找當前區域中的節點表 </param>
+        /// <param name="a_lNodeNum">[IN] node number in current region 當前區域的節點號 </param>
+        /// <param name="a_lPathLength">[INOUT] wanted path size 想要的路徑陣列大小 </param>
         /// <returns> node list </returns>
         public static int[] FindPathofNode(int a_lSrc, int a_lDst, int[] a_alMapCurrent, int a_lNodeNum, ref int a_lPathLength)
         {
@@ -241,6 +241,10 @@ namespace AlgorithmTool
 #endif
 
             lIndexS2D = a_lSrc * a_lNodeNum + a_lDst;
+            /*if (lIndexS2D >= 9)
+            {
+                lIndexS2D = 8;
+            }*/
             a_lPathLength = alNodeListNum[lIndexS2D];
             alPath = new int[a_lPathLength];
 

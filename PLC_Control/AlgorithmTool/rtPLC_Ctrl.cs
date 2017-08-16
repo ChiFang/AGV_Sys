@@ -505,7 +505,14 @@ namespace AlgorithmTool
             // 判斷是否已超終點
             if (eTheta >= ANGLE_TH)
             { // 超過終點 >>　必須反向行走
-                return true;
+                /*if (Math.Abs(tV_S2D.eX) >= 200 || Math.Abs(tV_S2D.eY) >= 200)
+                {
+                    return false;
+                }
+                else*/
+                {
+                    return true;
+                }
             }
             return false;
         }
@@ -698,10 +705,12 @@ namespace AlgorithmTool
                 // Motor power = function(Error)
                 tMotorData.lMotorPower = (int)(tMotorCfg.tPID_PowerCoe.eKp * eErrorCurrent) + MIN_POWER;
 
+
                 if (tMotorData.bBackWard)
                 {   // 反向走
                     tMotorData.lMotorPower = -tMotorData.lMotorPower;
                 }
+
 
                 eDistanceTurn = (tMotorData.bBackWard) ? eDistanceMotor2Dest : eErrorCurrent;
                 switch (a_atPathInfo[tMotorData.lPathNodeIndex].ucTurnType)
@@ -1028,7 +1037,23 @@ namespace AlgorithmTool
         {
             a_eCarAngle = 0;
             a_tCarCoordinate = new rtVector();
-            a_tCarCoordinate = Coordinate_Predict(a_tCarData.tPosition, a_tCarData, a_CMotorInfo, a_eDeltaTime);
+            if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)//大型車
+            {
+                a_tCarCoordinate = Coordinate_Predict(a_tCarData.tPosition, a_tCarData, a_CMotorInfo, a_eDeltaTime);
+            }
+            else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+            {
+
+            }
+            else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)//小型車
+            {
+                
+            }
+            else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+            {
+
+            }
+            
             a_eCarAngle = a_tCarData.eAngle + a_CMotorInfo.tMotorData.eDeltaAngle;
         }
 
@@ -1164,20 +1189,30 @@ namespace AlgorithmTool
             double eAngleDelay = 0; // 確認輪胎有轉到90度
 
             eAngleError = rtAngleDiff.GetAngleDiff(a_eTargetAngle, a_tCarData.eAngle);
+
+            Console.WriteLine(eAngleError);
             if (Math.Abs(eAngleError) <= ANGLE_MATCH_TH || bAlignmentCarAngleMatch)
             {
                 bAlignmentCarAngleMatch = true; // 代表已轉正 >>正在迴正輪胎
                 tMotorData.lMotorPower = 0;
                 tMotorData.lMotorAngle = 0;
 
-                //PLC_Moter_Ctrl = 0;
-
+                PLC_Moter_Ctrl = 0;
 
                 // 車輪轉回0度才結束
                 if (Math.Abs(a_tCarData.eWheelAngle) < ANGLE_MATCH_TH)
                 {
                     bAlignmentCarAngleMatch = false;    // 結束時要復原這個旗標 or not
                     bMatched = true;
+                    try
+                    {
+                        MainForm.SCarMoveStop(0);
+                        Thread.Sleep(200);
+                        /*MainForm.SCarmodify_speed(300, 0);
+                        Thread.Sleep(100);*/
+                    }
+                    catch
+                    { }
                 }
                 else
                 {
@@ -1221,7 +1256,40 @@ namespace AlgorithmTool
                 }
                 else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)//小車判斷
                 {
-                    MainForm.CarMove("Clockwise");
+                    try
+                    {
+                        if (eAngleError > 0)
+                        {
+                            MainForm.SCarmodify_speed(80, 0);
+                            Thread.Sleep(100);
+                            if (MainForm.CraMove != 3)
+                            {
+                                
+                                MainForm.SCarMove("Counterclockwise");
+                                Thread.Sleep(100);
+                            }
+                        }
+                        else
+                        {
+                            MainForm.SCarmodify_speed(80, 0);
+                            Thread.Sleep(100);
+                            if (MainForm.CraMove != 4)
+                            {
+                                
+                                MainForm.SCarMove("Clockwise");
+                                
+                                Thread.Sleep(100);
+                            }
+                        }
+
+
+                        /*MainForm.SCarmodify_speed(80, 0);
+                        Thread.Sleep(100);
+                        MainForm.SCarMove("Clockwise");
+                        Thread.Sleep(100);*/
+                    }
+                    catch
+                    { }
                 }
                 else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)//小車判斷
                 {

@@ -31,11 +31,61 @@ namespace PLC_Control
             InitializeComponent();
             txtDataIndex.Text = "1";
             btnReadData.Enabled = false;//防止資料尚未開啟就進行運算導致程式錯誤
+
+            if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)
+            {
+                dataGridView_Log.Rows.Clear();
+                dataGridView_Log.Columns.Clear();
+
+                dataGridView_Log.Columns.Add("Index", "Index");
+                dataGridView_Log.Columns.Add("P_X", "P_X");
+                dataGridView_Log.Columns.Add("P_Y", "P_Y");
+                dataGridView_Log.Columns.Add("Angle", "Angle");
+                dataGridView_Log.Columns.Add("R_X", "R_X");
+                dataGridView_Log.Columns.Add("R_Y", "R_Y");
+                dataGridView_Log.Columns.Add("L_X", "L_X");
+                dataGridView_Log.Columns.Add("L_Y", "L_Y");
+                dataGridView_Log.Columns.Add("S_L", "S_L");
+                dataGridView_Log.Columns.Add("S_R", "S_R");
+                dataGridView_Log.Columns.Add("Src", "Src");
+                dataGridView_Log.Columns.Add("Dst", "Dst");
+            }
+            else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+            {
+
+            }
+            else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)
+            {
+                dataGridView_Log.Rows.Clear();
+                dataGridView_Log.Columns.Clear();
+
+                dataGridView_Log.Columns.Add("Index", "Index");
+                dataGridView_Log.Columns.Add("P_X", "P_X");
+                dataGridView_Log.Columns.Add("P_Y", "P_Y");
+                dataGridView_Log.Columns.Add("Angle", "Angle");
+                /*dataGridView_Log.Columns.Add("R_X", "R_X");
+                dataGridView_Log.Columns.Add("R_Y", "R_Y");
+                dataGridView_Log.Columns.Add("L_X", "L_X");
+                dataGridView_Log.Columns.Add("L_Y", "L_Y");*/
+                dataGridView_Log.Columns.Add("S_L", "S_L");
+                dataGridView_Log.Columns.Add("S_R", "S_R");
+                dataGridView_Log.Columns.Add("Src", "Src");
+                dataGridView_Log.Columns.Add("Dst", "Dst");
+            }
+            else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+            {
+
+            }
+
+
         }
 
         private void btnLogBack_Click(object sender, EventArgs e)
         {
             ShowLogDebugPanel.Visible = false;
+            MainForm MachineType = new MainForm();
+            MachineType.MachineType_Chang(true);
+            
         }
         string filename;
         private void btnOpenFile_Click(object sender, EventArgs e)
@@ -67,7 +117,7 @@ namespace PLC_Control
                 btnReadData.Enabled = true;//防止資料尚未開啟就進行運算導致程式錯誤
             }
         }
-
+        object[] obj;
         private void btnReadData_Click(object sender, EventArgs e)
         {
             if (txtDataIndex.Text == "")
@@ -110,17 +160,44 @@ namespace PLC_Control
                 DeliverData.tAGV_Data.atPathInfo[0].ucTurnType = 2;
                 DeliverData.tAGV_Data.atPathInfo[0].ucStatus = 1;
 
-                object[] obj = new object[12] { Select_Index,  DeliverData.tAGV_Data.tCarInfo.tPosition.eX,  DeliverData.tAGV_Data.tCarInfo.tPosition.eY, 
+
+
+                if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)
+                {
+                    obj = new object[12] { Select_Index,  DeliverData.tAGV_Data.tCarInfo.tPosition.eX,  DeliverData.tAGV_Data.tCarInfo.tPosition.eY, 
                         DeliverData.tAGV_Data.tCarInfo.eAngle,   DeliverData.tAGV_Data.tCarInfo.tCarTirepositionR.eX,   DeliverData.tAGV_Data.tCarInfo.tCarTirepositionR.eY, 
                         DeliverData.tAGV_Data.tCarInfo.tCarTirepositionL.eX,  DeliverData.tAGV_Data.tCarInfo.tCarTirepositionL.eY,  DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedLeft,
                         DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedRight,  DeliverData.tAGV_Data.atPathInfo[0].tSrc.eX+"/"+ DeliverData.tAGV_Data.atPathInfo[0].tSrc.eY, 
                         DeliverData.tAGV_Data.atPathInfo[0].tDest.eX + "/" +  DeliverData.tAGV_Data.atPathInfo[0].tDest.eY};
 
+                }
+                else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+                {
+
+                }
+                else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)
+                {
+                    obj = new object[8] { Select_Index,  DeliverData.tAGV_Data.tCarInfo.tPosition.eX,  DeliverData.tAGV_Data.tCarInfo.tPosition.eY, 
+                        DeliverData.tAGV_Data.tCarInfo.eAngle, DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedLeft,
+                        DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedRight,  DeliverData.tAGV_Data.atPathInfo[0].tSrc.eX+"/"+ DeliverData.tAGV_Data.atPathInfo[0].tSrc.eY, 
+                        DeliverData.tAGV_Data.atPathInfo[0].tDest.eX + "/" +  DeliverData.tAGV_Data.atPathInfo[0].tDest.eY};
+
+                }
+                else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+                {
+
+                }
+
+                
                 DataGridViewRow dgvr = new DataGridViewRow();
                 dgvr.CreateCells(dataGridView_Log, obj);
                 dgvr.Height = 35;
                 dgvr.DefaultCellStyle.BackColor = Color.LightBlue;
                 dataGridView_Log.Rows.Add(dgvr);
+
+
+                //判斷現在車種為何
+                DeliverData.rtAGV_Chang_Type_Self_Carriage(MainForm.comboBox_MachineType_Num);
 
                 DeliverData.rtAGV_MotorCtrl(ref DeliverData.tAGV_Data.atPathInfo, 0, true);
 

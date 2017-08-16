@@ -178,7 +178,7 @@ namespace NavigationTool
                     {
                         //車輛兩輪中心點位置
                         
-                        GlobalVar.MotorPosition = CrrentLocation;
+                        //GlobalVar.MotorPosition = CrrentLocation;
                         //rtCarData.eCarTireSpeedLeft;
                         //tAGV_Data.tCarInfo.eCarTireSpeedLeft;
 
@@ -187,12 +187,13 @@ namespace NavigationTool
                         GlobalVar.MotorPosition = CrrentLocation;
 
                         //車輛前輪中心點位置
-                        TFrontCenterLocation.LocationX = (int)(CrrentLocation.LocationX + 600 * Math.Cos((CrrentLocation.Direction * Math.PI) / 180));
+                        /*TFrontCenterLocation.LocationX = (int)(CrrentLocation.LocationX + 600 * Math.Cos((CrrentLocation.Direction * Math.PI) / 180));
                         TFrontCenterLocation.LocationY = (int)(CrrentLocation.LocationY + 600 * Math.Sin((CrrentLocation.Direction * Math.PI) / 180));
-
-                        /*TFrontCenterLocation.LocationX = CrrentLocation.LocationX;
-                        TFrontCenterLocation.LocationY = CrrentLocation.LocationY;*/
+                        */
+                        TFrontCenterLocation.LocationX = CrrentLocation.LocationX + 600;
+                        TFrontCenterLocation.LocationY = CrrentLocation.LocationY;
                         TrasformCoordinate(CrrentLocation, TFrontCenterLocation, TFrontCenterLocation, CrrentLocation.Direction);
+                        
                         TFrontCenterLocation.Direction = CrrentLocation.Direction;
                         GlobalVar.CurrentPosition = TFrontCenterLocation;
 

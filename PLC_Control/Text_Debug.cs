@@ -127,6 +127,155 @@ namespace PLC_Control
         {
             InitializeComponent();
 
+            if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)
+            {
+                dataGridView_Text.Rows.Clear();
+                dataGridView_Text.Columns.Clear();
+
+                dataGridView_Text.Columns.Add("P_X", "P_X");
+                dataGridView_Text.Columns.Add("P_Y", "P_Y");
+                dataGridView_Text.Columns.Add("Angle", "Angle");
+                dataGridView_Text.Columns.Add("R_X", "R_X");
+                dataGridView_Text.Columns.Add("R_Y", "R_Y");
+                dataGridView_Text.Columns.Add("L_X", "L_X");
+                dataGridView_Text.Columns.Add("L_Y", "L_Y");
+                dataGridView_Text.Columns.Add("S_L", "S_L");
+                dataGridView_Text.Columns.Add("S_R", "S_R");
+                dataGridView_Text.Columns.Add("Src", "Src");
+                dataGridView_Text.Columns.Add("Dst", "Dst");
+
+
+                textBox_PositionX.Visible = true;
+                label_PositionX.Visible = true;
+
+                textBox_PositionY.Visible = true;
+                label_PositionY.Visible = true;
+
+                textBox_Angle.Visible = true;
+                label_Angle.Visible = true;
+
+                textBox_CarTireSpeedLeft.Visible = true;
+                label_CarTireSpeedLeft.Visible = true;
+
+                textBox_CarTireSpeedRight.Visible = true;
+                label_CarTireSpeedRight.Visible = true;
+
+                textBox_CarTirepositionR_X.Visible = true;
+                label_CarTirepositionR_X.Visible = true;
+
+                textBox_CarTirepositionR_Y.Visible = true;
+                label_CarTirepositionR_Y.Visible = true;
+
+                textBox_CarTirepositionL_X.Visible = true;
+                label_CarTirepositionL_X.Visible = true;
+
+                textBox_CarTirepositionL_Y.Visible = true;
+                label_CarTirepositionL_Y.Visible = true;
+
+                textBox_MotorPosition_X.Visible = true;
+                label_MotorPosition_X.Visible = true;
+
+                textBox_MotorPosition_Y.Visible = true;
+                label_MotorPosition_Y.Visible = true;
+
+                textBox_WheelAngle.Visible = true;
+                label_WheelAngle.Visible = true;
+
+                textBox_TurnType.Visible = true;
+                label_TurnType.Visible = true;
+
+                textBox_Src_X.Visible = true;
+                label_Src_X.Visible = true;
+
+                textBox_Src_Y.Visible = true;
+                label_Src_Y.Visible = true;
+
+                textBox_Dest_X.Visible = true;
+                label_Dest_X.Visible = true;
+
+                textBox_Dest_Y.Visible = true;
+                label_Dest_Y.Visible = true;
+            }
+            else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+            {
+
+            }
+            else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)
+            {
+                dataGridView_Text.Rows.Clear();
+                dataGridView_Text.Columns.Clear();
+
+                dataGridView_Text.Columns.Add("P_X", "P_X");
+                dataGridView_Text.Columns.Add("P_Y", "P_Y");
+                dataGridView_Text.Columns.Add("Angle", "Angle");
+                /*dataGridView_Text.Columns.Add("R_X", "R_X");
+                dataGridView_Text.Columns.Add("R_Y", "R_Y");
+                dataGridView_Text.Columns.Add("L_X", "L_X");
+                dataGridView_Text.Columns.Add("L_Y", "L_Y");*/
+                dataGridView_Text.Columns.Add("S_L", "S_L");
+                dataGridView_Text.Columns.Add("S_R", "S_R");
+                dataGridView_Text.Columns.Add("Src", "Src");
+                dataGridView_Text.Columns.Add("Dst", "Dst");
+
+
+                textBox_PositionX.Visible = true;
+                label_PositionX.Visible = true;
+
+                textBox_PositionY.Visible = true;
+                label_PositionY.Visible = true;
+
+                textBox_Angle.Visible = true;
+                label_Angle.Visible = true;
+
+                textBox_CarTireSpeedLeft.Visible = false;
+                label_CarTireSpeedLeft.Visible = false;
+
+                textBox_CarTireSpeedRight.Visible = false;
+                label_CarTireSpeedRight.Visible = false;
+
+                textBox_CarTirepositionR_X.Visible = false;
+                label_CarTirepositionR_X.Visible = false;
+
+                textBox_CarTirepositionR_Y.Visible = false;
+                label_CarTirepositionR_Y.Visible = false;
+
+                textBox_CarTirepositionL_X.Visible = false;
+                label_CarTirepositionL_X.Visible = false;
+
+                textBox_CarTirepositionL_Y.Visible = false;
+                label_CarTirepositionL_Y.Visible = false;
+
+                textBox_MotorPosition_X.Visible = false;
+                label_MotorPosition_X.Visible = false;
+
+                textBox_MotorPosition_Y.Visible = false;
+                label_MotorPosition_Y.Visible = false;
+
+                textBox_WheelAngle.Visible = false;
+                label_WheelAngle.Visible = false;
+
+                textBox_TurnType.Visible = false;
+                label_TurnType.Visible = false;
+
+                textBox_Src_X.Visible = true;
+                label_Src_X.Visible = true;
+
+                textBox_Src_Y.Visible = true;
+                label_Src_Y.Visible = true;
+
+                textBox_Dest_X.Visible = true;
+                label_Dest_X.Visible = true;
+
+                textBox_Dest_Y.Visible = true;
+                label_Dest_Y.Visible = true;
+
+            }
+            else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+            {
+
+            }
+
+
             textBox_PositionX.Text = PositionX;
             textBox_PositionY.Text = PositionY;
             textBox_Angle.Text = Angle;
@@ -149,10 +298,17 @@ namespace PLC_Control
         private void btnTextBack_Click(object sender, EventArgs e)
         {
             ShowTextDebugPanel.Visible = false;
+
+
+            MainForm MachineType = new MainForm();
+            MachineType.MachineType_Chang(true);
+            //comboBox_MachineType.Enabled = true;
         }
 
+        object[] obj;
         private void btnCalculationResults_Click(object sender, EventArgs e)
         {
+            
             if (textBox_PositionX.Text == "" || textBox_PositionY.Text == "" || textBox_Angle.Text == ""
              || textBox_CarTireSpeedLeft.Text == "" || textBox_CarTireSpeedRight.Text == "" || textBox_CarTirepositionR_X.Text == ""
              || textBox_CarTirepositionR_Y.Text == "" || textBox_CarTirepositionL_X.Text == "" || textBox_CarTirepositionL_Y.Text == ""
@@ -172,71 +328,97 @@ namespace PLC_Control
             dataGridView_Text.Rows.Clear();
             try
             {
-                //更新車體資訊
-                DeliverData.tAGV_Data.tCarInfo.tPosition.eX = Convert.ToDouble(textBox_PositionX.Text);
-                DeliverData.tAGV_Data.tCarInfo.tPosition.eY = Convert.ToDouble(textBox_PositionY.Text);
-                DeliverData.tAGV_Data.tCarInfo.eAngle = Convert.ToDouble(textBox_Angle.Text);
+                //if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)
+                {
+                    //更新車體資訊
+                    DeliverData.tAGV_Data.tCarInfo.tPosition.eX = Convert.ToDouble(textBox_PositionX.Text);
+                    DeliverData.tAGV_Data.tCarInfo.tPosition.eY = Convert.ToDouble(textBox_PositionY.Text);
+                    DeliverData.tAGV_Data.tCarInfo.eAngle = Convert.ToDouble(textBox_Angle.Text);
 
-                DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedLeft = Convert.ToDouble(textBox_CarTireSpeedLeft.Text);
-                DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedRight = Convert.ToDouble(textBox_CarTireSpeedRight.Text);
+                    DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedLeft = Convert.ToDouble(textBox_CarTireSpeedLeft.Text);
+                    DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedRight = Convert.ToDouble(textBox_CarTireSpeedRight.Text);
 
-                DeliverData.tAGV_Data.tCarInfo.tCarTirepositionR.eX = Convert.ToDouble(textBox_CarTirepositionR_X.Text);
-                DeliverData.tAGV_Data.tCarInfo.tCarTirepositionR.eY = Convert.ToDouble(textBox_CarTirepositionR_Y.Text);
-                DeliverData.tAGV_Data.tCarInfo.tCarTirepositionL.eX = Convert.ToDouble(textBox_CarTirepositionL_X.Text);
-                DeliverData.tAGV_Data.tCarInfo.tCarTirepositionL.eY = Convert.ToDouble(textBox_CarTirepositionL_Y.Text);
-                DeliverData.tAGV_Data.tCarInfo.tMotorPosition.eX = Convert.ToDouble(textBox_MotorPosition_X.Text);
-                DeliverData.tAGV_Data.tCarInfo.tMotorPosition.eY = Convert.ToDouble(textBox_MotorPosition_Y.Text);
+                    DeliverData.tAGV_Data.tCarInfo.tCarTirepositionR.eX = Convert.ToDouble(textBox_CarTirepositionR_X.Text);
+                    DeliverData.tAGV_Data.tCarInfo.tCarTirepositionR.eY = Convert.ToDouble(textBox_CarTirepositionR_Y.Text);
+                    DeliverData.tAGV_Data.tCarInfo.tCarTirepositionL.eX = Convert.ToDouble(textBox_CarTirepositionL_X.Text);
+                    DeliverData.tAGV_Data.tCarInfo.tCarTirepositionL.eY = Convert.ToDouble(textBox_CarTirepositionL_Y.Text);
+                    DeliverData.tAGV_Data.tCarInfo.tMotorPosition.eX = Convert.ToDouble(textBox_MotorPosition_X.Text);
+                    DeliverData.tAGV_Data.tCarInfo.tMotorPosition.eY = Convert.ToDouble(textBox_MotorPosition_Y.Text);
 
-                //更新車Sensor資訊
-                DeliverData.tAGV_Data.tCarInfo.eWheelAngle = Convert.ToDouble(textBox_WheelAngle.Text);
+                    //更新車Sensor資訊
+                    DeliverData.tAGV_Data.tCarInfo.eWheelAngle = Convert.ToDouble(textBox_WheelAngle.Text);
 
-                //取得Path資訊
-                DeliverData.tAGV_Data.atPathInfo = new rtPath_Info[1];
-                DeliverData.tAGV_Data.atPathInfo[0].tSrc.eX = Convert.ToDouble(textBox_Src_X.Text);
-                DeliverData.tAGV_Data.atPathInfo[0].tSrc.eY = Convert.ToDouble(textBox_Src_Y.Text);
-                DeliverData.tAGV_Data.atPathInfo[0].tDest.eX = Convert.ToDouble(textBox_Dest_X.Text);
-                DeliverData.tAGV_Data.atPathInfo[0].tDest.eY = Convert.ToDouble(textBox_Dest_Y.Text);
-                DeliverData.tAGV_Data.atPathInfo[0].ucTurnType = Convert.ToByte(textBox_TurnType.Text);
-                DeliverData.tAGV_Data.atPathInfo[0].ucStatus = 1;
-
-                object[] obj = new object[11] { DeliverData.tAGV_Data.tCarInfo.tPosition.eX,  DeliverData.tAGV_Data.tCarInfo.tPosition.eY, 
+                    //取得Path資訊
+                    DeliverData.tAGV_Data.atPathInfo = new rtPath_Info[1];
+                    DeliverData.tAGV_Data.atPathInfo[0].tSrc.eX = Convert.ToDouble(textBox_Src_X.Text);
+                    DeliverData.tAGV_Data.atPathInfo[0].tSrc.eY = Convert.ToDouble(textBox_Src_Y.Text);
+                    DeliverData.tAGV_Data.atPathInfo[0].tDest.eX = Convert.ToDouble(textBox_Dest_X.Text);
+                    DeliverData.tAGV_Data.atPathInfo[0].tDest.eY = Convert.ToDouble(textBox_Dest_Y.Text);
+                    DeliverData.tAGV_Data.atPathInfo[0].ucTurnType = Convert.ToByte(textBox_TurnType.Text);
+                    DeliverData.tAGV_Data.atPathInfo[0].ucStatus = 1;
+                    
+                    //車種不同 顯示也會不一樣
+                    if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)
+                    {
+                        obj = new object[11] { DeliverData.tAGV_Data.tCarInfo.tPosition.eX,  DeliverData.tAGV_Data.tCarInfo.tPosition.eY, 
                         DeliverData.tAGV_Data.tCarInfo.eAngle,   DeliverData.tAGV_Data.tCarInfo.tCarTirepositionR.eX,   DeliverData.tAGV_Data.tCarInfo.tCarTirepositionR.eY, 
                         DeliverData.tAGV_Data.tCarInfo.tCarTirepositionL.eX,  DeliverData.tAGV_Data.tCarInfo.tCarTirepositionL.eY,  DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedLeft,
                         DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedRight,  DeliverData.tAGV_Data.atPathInfo[0].tSrc.eX+"/"+ DeliverData.tAGV_Data.atPathInfo[0].tSrc.eY, 
                         DeliverData.tAGV_Data.atPathInfo[0].tDest.eX + "/" +  DeliverData.tAGV_Data.atPathInfo[0].tDest.eY};
+                    }
+                    else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+                    {
 
-                DataGridViewRow dgvr = new DataGridViewRow();
-                dgvr.CreateCells(dataGridView_Text, obj);
-                dgvr.Height = 35;
-                dgvr.DefaultCellStyle.BackColor = Color.LightBlue;
-                dataGridView_Text.Rows.Add(dgvr);
+                    }
+                    else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)
+                    {
+                        obj = new object[7] { DeliverData.tAGV_Data.tCarInfo.tPosition.eX,  DeliverData.tAGV_Data.tCarInfo.tPosition.eY, 
+                        DeliverData.tAGV_Data.tCarInfo.eAngle, DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedLeft,
+                        DeliverData.tAGV_Data.tCarInfo.eCarTireSpeedRight,  DeliverData.tAGV_Data.atPathInfo[0].tSrc.eX+"/"+ DeliverData.tAGV_Data.atPathInfo[0].tSrc.eY, 
+                        DeliverData.tAGV_Data.atPathInfo[0].tDest.eX + "/" +  DeliverData.tAGV_Data.atPathInfo[0].tDest.eY};
+                    }
+                    else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+                    {
 
-                DeliverData.rtAGV_MotorCtrl(ref DeliverData.tAGV_Data.atPathInfo, 0, true);
+                    }
 
-                //Console.WriteLine("Power:" + DeliverData.tAGV_Data.CMotor.tMotorData.lMotorPower.ToString());
-                //Console.WriteLine("lMotorAngle:" + DeliverData.tAGV_Data.CMotor.tMotorData.lMotorAngle.ToString());
 
-                label_TextPower.Text = "Power：" + DeliverData.tAGV_Data.CMotor.tMotorData.lMotorPower.ToString();
-                label_TextMotorAngle.Text = "MotorAngle：" + DeliverData.tAGV_Data.CMotor.tMotorData.lMotorAngle.ToString();
+                    DataGridViewRow dgvr = new DataGridViewRow();
+                    dgvr.CreateCells(dataGridView_Text, obj);
+                    dgvr.Height = 35;
+                    dgvr.DefaultCellStyle.BackColor = Color.LightBlue;
+                    dataGridView_Text.Rows.Add(dgvr);
 
-                //將數值寫回儲存資料內
-                PositionX = textBox_PositionX.Text;
-                PositionY = textBox_PositionY.Text;
-                Angle = textBox_Angle.Text;
-                CarTireSpeedLeft = textBox_CarTireSpeedLeft.Text;
-                CarTireSpeedRight = textBox_CarTireSpeedRight.Text;
-                CarTirepositionR_X = textBox_CarTirepositionR_X.Text;
-                CarTirepositionR_Y = textBox_CarTirepositionR_Y.Text;
-                CarTirepositionL_X = textBox_CarTirepositionL_X.Text;
-                CarTirepositionL_Y = textBox_CarTirepositionL_Y.Text;
-                MotorPosition_X = textBox_MotorPosition_X.Text;
-                MotorPosition_Y = textBox_MotorPosition_Y.Text;
-                WheelAngle = textBox_WheelAngle.Text;
-                TurnType = textBox_TurnType.Text;
-                Src_X = textBox_Src_X.Text;
-                Src_Y = textBox_Src_Y.Text;
-                Dest_X = textBox_Dest_X.Text;
-                Dest_Y = textBox_Dest_Y.Text;
+                    //判斷現在車種為何
+                    DeliverData.rtAGV_Chang_Type_Self_Carriage(MainForm.comboBox_MachineType_Num);
+
+                    DeliverData.rtAGV_MotorCtrl(ref DeliverData.tAGV_Data.atPathInfo, 0, true);
+
+                    //Console.WriteLine("Power:" + DeliverData.tAGV_Data.CMotor.tMotorData.lMotorPower.ToString());
+                    //Console.WriteLine("lMotorAngle:" + DeliverData.tAGV_Data.CMotor.tMotorData.lMotorAngle.ToString());
+
+                    label_TextPower.Text = "Power：" + DeliverData.tAGV_Data.CMotor.tMotorData.lMotorPower.ToString();
+                    label_TextMotorAngle.Text = "MotorAngle：" + DeliverData.tAGV_Data.CMotor.tMotorData.lMotorAngle.ToString();
+
+                    //將數值寫回儲存資料內
+                    PositionX = textBox_PositionX.Text;
+                    PositionY = textBox_PositionY.Text;
+                    Angle = textBox_Angle.Text;
+                    CarTireSpeedLeft = textBox_CarTireSpeedLeft.Text;
+                    CarTireSpeedRight = textBox_CarTireSpeedRight.Text;
+                    CarTirepositionR_X = textBox_CarTirepositionR_X.Text;
+                    CarTirepositionR_Y = textBox_CarTirepositionR_Y.Text;
+                    CarTirepositionL_X = textBox_CarTirepositionL_X.Text;
+                    CarTirepositionL_Y = textBox_CarTirepositionL_Y.Text;
+                    MotorPosition_X = textBox_MotorPosition_X.Text;
+                    MotorPosition_Y = textBox_MotorPosition_Y.Text;
+                    WheelAngle = textBox_WheelAngle.Text;
+                    TurnType = textBox_TurnType.Text;
+                    Src_X = textBox_Src_X.Text;
+                    Src_Y = textBox_Src_Y.Text;
+                    Dest_X = textBox_Dest_X.Text;
+                    Dest_Y = textBox_Dest_Y.Text;
+                }
             }
             catch (Exception)
             {

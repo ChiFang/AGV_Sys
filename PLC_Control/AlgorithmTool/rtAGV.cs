@@ -12,6 +12,7 @@ using System.IO;
 using System.Text;
 using Others;
 using LidarTool;
+using System.Windows.Forms;
 
 namespace AlgorithmTool
 {
@@ -337,16 +338,16 @@ namespace AlgorithmTool
         /// <summary>
         /// AGV Navigation function: include path planning, find out the path to the destination
         /// </summary>
-        /// <param name="a_tRegionData">[IN] current region data</param>
-        /// <param name="a_lWarehousIndex">[IN] current Warehouse index </param>
-        /// <param name="a_atObstacle">[IN] Obstacle information </param>
-        /// <param name="a_bPark">[IN] Park request: False: do not need True: need </param>
-        /// <returns> Navigation result -1:error  0: do not need to move 1: nothing wrong </returns>
+        /// <param name="a_tRegionData">[IN] current region data 當前區域數據 </param>
+        /// <param name="a_lWarehousIndex">[IN] current Warehouse index 當前櫃位數據 </param>
+        /// <param name="a_atObstacle">[IN] Obstacle information 障礙誤訊息 </param>
+        /// <param name="a_bPark">[IN] Park request: False: do not need True: need 是否要停車 </param>
+        /// <returns> Navigation result -1:error  0: do not need to move 1: nothing wrong 導航運算結果 </returns>
         public int rtAGV_Navigation(RegionOfMap a_tRegionData, int a_lWarehousIndex, ROI[] a_atObstacle, bool a_bPark)
         {   // 沒路徑 離終點太近無法校正等都會回傳-1 表示錯誤
             int lCheckResult = 1;
 
-            rtWarehouseInfo tWarehouse = a_tRegionData.atWarehouseCfg[a_lWarehousIndex];
+            rtWarehouseInfo tWarehouse = a_tRegionData.atWarehouseCfg[a_lWarehousIndex];//取得櫃位資訊
 
             if (tAGV_Data.atPathInfo.Length <= 0 || a_atObstacle.Length != 0)
             {
@@ -399,7 +400,7 @@ namespace AlgorithmTool
                     rtAGV_MotorCtrl_BigCar(a_atPathInfo, a_eDirection, a_bAligmentFree);
                     break;
                 case (byte)Type_Self_Carriage.SmallCar:   // 小型車
-                    rtAGV_MotorCtrl_SmallCar(a_atPathInfo, a_eDirection, a_bAligmentFree);
+                    rtAGV_MotorCtrl_BigCar(a_atPathInfo, a_eDirection, a_bAligmentFree);
                     break;
                 case (byte)Type_Self_Carriage.MediumCar:   // 中型車
                     rtAGV_MotorCtrl_MediumCar(a_atPathInfo, a_eDirection, a_bAligmentFree);
@@ -523,7 +524,7 @@ namespace AlgorithmTool
         }
 
         //小型車
-        public void rtAGV_MotorCtrl_SmallCar(rtPath_Info[] a_atPathInfo, double a_eDirection, bool a_bAligmentFree)
+        /*public void rtAGV_MotorCtrl_SmallCar(rtPath_Info[] a_atPathInfo, double a_eDirection, bool a_bAligmentFree)
         {
             double eTargetAngle = 0, eTargetError = 0, eWheelTheta = 0;
             int lPathIndex = 0;
@@ -629,7 +630,7 @@ namespace AlgorithmTool
                 }
                 return;
             }
-        }
+        }*/
 
         //中型車
         public void rtAGV_MotorCtrl_MediumCar(rtPath_Info[] a_atPathInfo, double a_eDirection, bool a_bAligmentFree)
@@ -762,11 +763,11 @@ namespace AlgorithmTool
         /// <summary>
         /// control all signal of car for moving to the destination
         /// </summary>
-        /// <param name="a_tWarehousPos">[IN] wanted warehouse's position </param>
-        /// <param name="a_bPark">[IN] Park request: False: do not need True: need </param>
+        /// <param name="a_tWarehousPos">[IN] wanted warehouse's position 櫃位座標 </param>
+        /// <param name="a_bPark">[IN] Park request: False: do not need True: need 是否需要停車 </param>
         public void MoveToAssignedPosition(WarehousPos a_tWarehousPos, bool a_bPark)
         {
-            while (tAGV_Data.CMotor.tMotorData.bFinishFlag == false && tAGV_Data.bEmergency == false)
+            while (tAGV_Data.CMotor.tMotorData.bFinishFlag == false && tAGV_Data.bEmergency == false)//沒有完導航及障礙物時，進行移動
             {
                 AutoNavigate(a_tWarehousPos, a_bPark);
 #if ThreadDelay
@@ -1082,6 +1083,7 @@ namespace AlgorithmTool
                     {
                         // 導航到取貨處
                         case (byte)rtAGVStatus.MOVE_TO_SRC:
+                            //取得要移動之櫃位
                             tWarehousPos = ObtainWarehousPosition(true);
                             // 自動導航到該櫃位
                             MoveToAssignedPosition(tWarehousPos, false);
@@ -1104,7 +1106,16 @@ namespace AlgorithmTool
                             Storage(tWarehousPos);
                             if (tAGV_Data.bEmergency == false)
                             {
-                                tAGV_Data.ucAGV_Status = (byte)rtAGVStatus.MOVE_TO_DEST;
+                                if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)//小車
+                                {
+                                    // 清空路徑資料避免被誤用
+                                    tAGV_Data.atPathInfo = new rtPath_Info[0];
+                                    tAGV_Data.ucAGV_Status = (byte)rtAGVStatus.STANDBY;
+                                }
+                                else
+                                {
+                                    tAGV_Data.ucAGV_Status = (byte)rtAGVStatus.MOVE_TO_DEST;
+                                }
                             }
                             else
                             {
@@ -1201,7 +1212,7 @@ namespace AlgorithmTool
         /// <summary>
         /// Obstacle Avoidance: if there are Obstacle, return "true"
         /// </summary>
-        /// <param name="a_atObstacle">[IN] Obstacle information</param>
+        /// <param name="a_atObstacle">[IN] Obstacle information 障礙物訊息 </param>
         /// <returns> if there are Obstacle, return "true" else return "false" </returns>
         public bool ObstacleAvoidance(ref ROI[] a_atObstacle)
         {
@@ -1250,8 +1261,8 @@ namespace AlgorithmTool
         /// <summary>
         /// Auto Navigate function: include path planning and motor control
         /// </summary>
-        /// <param name="a_tWarehousPos">[IN] destination Information </param>
-        /// <param name="a_bPark">[IN] Park request: False: do not need True: need </param>
+        /// <param name="a_tWarehousPos">[IN] destination Information 目的地(櫃位)訊息 </param>
+        /// <param name="a_bPark">[IN] Park request: False: do not need True: need 是否需要停車 </param>
         public void AutoNavigate(WarehousPos a_tWarehousPos, bool a_bPark)
         {
             ROI[] atObstacle = new ROI[0];
@@ -1264,7 +1275,7 @@ namespace AlgorithmTool
             // Obstacle Avoidance 檢查當下路徑或方向有沒有障礙物的威脅，並且回傳障礙物資訊和緊急訊號
             tAGV_Data.bEmergency = ObstacleAvoidance(ref atObstacle);
 
-            if (tAGV_Data.bEmergency == false)
+            if (tAGV_Data.bEmergency == false)//當沒有障礙物時
             {
                 // 檢測或算出路徑
                 lCheckResult = rtAGV_Navigation(tRegionData, a_tWarehousPos.lIndex, atObstacle, a_bPark);
@@ -1316,7 +1327,7 @@ namespace AlgorithmTool
                 return false;
             }
         }
-
+        string value;
         /// <summary>
         /// Storage function: include load & unload action by control motor and fork
         /// </summary>
@@ -1342,70 +1353,213 @@ namespace AlgorithmTool
 
                     // ALIMENT
                     case (byte)rtForkCtrl.ForkStatus.ALIMENT:
-                        bDone = false;
-                        bDone = tAGV_Data.CMotor.CarAngleAlignment(
-                            tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].eDirection,
-                            tAGV_Data.tCarInfo);
-
-                        tAGV_Data.CFork.tForkData.distanceDepth = 0;
-
-                        
-                        if(tAGV_Data.ucAGV_Status == (byte)rtAGVStatus.UNLOAD)
-                        {   // UNLOAD要高一點
-                            tAGV_Data.CFork.tForkData.height = (int)tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].eHeight + rtForkCtrl.FORK_PICKUP_HEIGHT;
-                        }
-                        else if(tAGV_Data.ucAGV_Status == (byte)rtAGVStatus.LOAD)
+                        if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)//大車
                         {
-                            tAGV_Data.CFork.tForkData.height = (int)tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].eHeight;
+                            bDone = false;
+                            bDone = tAGV_Data.CMotor.CarAngleAlignment(
+                                tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].eDirection,
+                                tAGV_Data.tCarInfo);
+
+                            tAGV_Data.CFork.tForkData.distanceDepth = 0;
+
+
+                            if (tAGV_Data.ucAGV_Status == (byte)rtAGVStatus.UNLOAD)
+                            {   // UNLOAD要高一點
+                                tAGV_Data.CFork.tForkData.height = (int)tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].eHeight + rtForkCtrl.FORK_PICKUP_HEIGHT;
+                            }
+                            else if (tAGV_Data.ucAGV_Status == (byte)rtAGVStatus.LOAD)
+                            {
+                                tAGV_Data.CFork.tForkData.height = (int)tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].eHeight;
+                            }
+                            else
+                            {   // error
+                                tAGV_Data.CFork.tForkData.height = 0;
+                                tAGV_Data.CFork.tForkData.bEnable = false;
+                                tAGV_Data.CFork.tForkData.ucStatus = (byte)rtForkCtrl.ForkStatus.ERROR;
+                                tAGV_Data.ucAGV_Status = (byte)rtAGVStatus.EMERGENCY_STOP;
+                            }
+
+                            tAGV_Data.CFork.tForkData.bEnable = true;
+
+                            if (ForkActionFinishCheck() && bDone)
+                            {   // 達到要的深度跟高度 >> 進入FORTH動作
+                                rtVector tDirectionLocal = new rtVector();
+                                tDirectionLocal = rtVectorOP_2D.Angle2Vector(tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].eDirection);
+                                tDirectionLocal = rtVectorOP_2D.VectorMultiple(tDirectionLocal, -1);
+
+                                tAGV_Data.CFork.tForkData.ucStatus = (byte)rtForkCtrl.ForkStatus.FORTH;
+                                tAGV_Data.atPathInfoForkForth[0].ucStatus = (byte)rtPath_Info.rtStatus.STRAIGHT;
+                                tAGV_Data.atPathInfoForkForth[0].ucTurnType = (byte)rtPath_Info.rtTurnType.ARRIVE;
+
+                                tAGV_Data.atPathInfoForkForth[0].tDest.eX = tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].tCoordinate.eX;
+                                tAGV_Data.atPathInfoForkForth[0].tDest.eY = tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].tCoordinate.eY;
+
+                                // 暫時先退 1 公尺
+                                tAGV_Data.atPathInfoForkForth[0].tSrc = rtVectorOP_2D.ExtendPointAlongVector(
+                                    tAGV_Data.atPathInfoForkForth[0].tDest, tDirectionLocal, STORAGE_BACK_DISTANCE);
+                            }
                         }
-                        else
-                        {   // error
-                            tAGV_Data.CFork.tForkData.height = 0;
-                            tAGV_Data.CFork.tForkData.bEnable = false;
-                            tAGV_Data.CFork.tForkData.ucStatus = (byte)rtForkCtrl.ForkStatus.ERROR;
-                            tAGV_Data.ucAGV_Status = (byte)rtAGVStatus.EMERGENCY_STOP;
+                        else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+                        {
                         }
+                        else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)//小車
+                        {
+                            bDone = false;
+                            bDone = tAGV_Data.CMotor.CarAngleAlignment(
+                                tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].eDirection,
+                                tAGV_Data.tCarInfo);
 
-                        tAGV_Data.CFork.tForkData.bEnable = true;
+                            tAGV_Data.CFork.tForkData.distanceDepth = 0;
 
-                        if (ForkActionFinishCheck() && bDone)
-                        {   // 達到要的深度跟高度 >> 進入FORTH動作
-                            rtVector tDirectionLocal = new rtVector();
-                            tDirectionLocal = rtVectorOP_2D.Angle2Vector(tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].eDirection);
-                            tDirectionLocal = rtVectorOP_2D.VectorMultiple(tDirectionLocal, -1);
+                            if (bDone)
+                            {
+                                rtVector tDirectionLocal = new rtVector();
+                                tDirectionLocal = rtVectorOP_2D.Angle2Vector(tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].eDirection);
+                                tDirectionLocal = rtVectorOP_2D.VectorMultiple(tDirectionLocal, -1);
 
-                            tAGV_Data.CFork.tForkData.ucStatus = (byte)rtForkCtrl.ForkStatus.FORTH;
-                            tAGV_Data.atPathInfoForkForth[0].ucStatus = (byte)rtPath_Info.rtStatus.STRAIGHT;
-                            tAGV_Data.atPathInfoForkForth[0].ucTurnType = (byte)rtPath_Info.rtTurnType.ARRIVE;
-                            
-                            tAGV_Data.atPathInfoForkForth[0].tDest.eX = tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].tCoordinate.eX;
-                            tAGV_Data.atPathInfoForkForth[0].tDest.eY = tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].tCoordinate.eY;
+                                tAGV_Data.CFork.tForkData.ucStatus = (byte)rtForkCtrl.ForkStatus.FORTH;
+                                tAGV_Data.atPathInfoForkForth[0].ucStatus = (byte)rtPath_Info.rtStatus.STRAIGHT;
+                                tAGV_Data.atPathInfoForkForth[0].ucTurnType = (byte)rtPath_Info.rtTurnType.ARRIVE;
 
-                            // 暫時先退 1 公尺
-                            tAGV_Data.atPathInfoForkForth[0].tSrc = rtVectorOP_2D.ExtendPointAlongVector(
-                                tAGV_Data.atPathInfoForkForth[0].tDest, tDirectionLocal, STORAGE_BACK_DISTANCE);
+                                tAGV_Data.atPathInfoForkForth[0].tDest.eX = tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].tCoordinate.eX;
+                                tAGV_Data.atPathInfoForkForth[0].tDest.eY = tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].tCoordinate.eY;
+
+                                // 暫時先退 1 公尺
+
+
+                                tAGV_Data.atPathInfoForkForth[0].tSrc.eX = GlobalVar.CurrentPosition.LocationX;
+                                tAGV_Data.atPathInfoForkForth[0].tSrc.eY = GlobalVar.CurrentPosition.LocationY;
+
+
+                                /*tAGV_Data.atPathInfoForkForth[0].tSrc = rtVectorOP_2D.ExtendPointAlongVector(
+                                    tAGV_Data.atPathInfoForkForth[0].tDest, tDirectionLocal, 0);*/
+                                
+                                //Thread.Sleep(200);
+                            }
+
+                            /*if (ForkActionFinishCheck() && bDone)
+                            {   // 達到要的深度跟高度 >> 進入FORTH動作
+                                rtVector tDirectionLocal = new rtVector();
+                                tDirectionLocal = rtVectorOP_2D.Angle2Vector(tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].eDirection);
+                                tDirectionLocal = rtVectorOP_2D.VectorMultiple(tDirectionLocal, -1);
+
+                                tAGV_Data.CFork.tForkData.ucStatus = (byte)rtForkCtrl.ForkStatus.FORTH;
+                                tAGV_Data.atPathInfoForkForth[0].ucStatus = (byte)rtPath_Info.rtStatus.STRAIGHT;
+                                tAGV_Data.atPathInfoForkForth[0].ucTurnType = (byte)rtPath_Info.rtTurnType.ARRIVE;
+
+                                tAGV_Data.atPathInfoForkForth[0].tDest.eX = tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].tCoordinate.eX;
+                                tAGV_Data.atPathInfoForkForth[0].tDest.eY = tIS_Cfg.tMapCfg.atRegionCfg[a_tWarehousPos.lRegion].atWarehouseCfg[a_tWarehousPos.lIndex].tCoordinate.eY;
+
+                                // 暫時先退 1 公尺
+                                tAGV_Data.atPathInfoForkForth[0].tSrc = rtVectorOP_2D.ExtendPointAlongVector(
+                                    tAGV_Data.atPathInfoForkForth[0].tDest, tDirectionLocal, STORAGE_BACK_DISTANCE);
+                            }*/
+                        }
+                        else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.Other)
+                        {
                         }
                         break;
                     // FORTH
                     case (byte)rtForkCtrl.ForkStatus.FORTH:
                         //先判斷輪胎是否回正
-                        if (!bCheckWheelAngle)
+                        if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.BigCar)//大車
                         {
-                            bCheckWheelAngle = (Math.Abs(tAGV_Data.tCarInfo.eWheelAngle) < rtMotorCtrl.ANGLE_MATCH_TH) ? true : false;
-                        }
-                        else
-                        {
-                            tAGV_Data.CFork.tForkData.bEnable = false;
-                            rtAGV_MotorCtrl(ref tAGV_Data.atPathInfoForkForth, a_tWarehousPos.eDirection, true);  // 前面已轉正過 >>所以設為true
-                            
-                            if (tAGV_Data.CMotor.tMotorData.bFinishFlag == true)
+                            if (!bCheckWheelAngle)
                             {
-                                // reset
-                                tAGV_Data.atPathInfo = new rtPath_Info[0];
-                                tAGV_Data.CMotor = new rtMotorCtrl();
-                                tAGV_Data.CFork.tForkData.ucStatus = (byte)rtForkCtrl.ForkStatus.ALIMENT_FORTH;
-                                
+                                bCheckWheelAngle = (Math.Abs(tAGV_Data.tCarInfo.eWheelAngle) < rtMotorCtrl.ANGLE_MATCH_TH) ? true : false;
                             }
+                            else
+                            {
+                                //Thread.Sleep(100);
+                                tAGV_Data.CFork.tForkData.bEnable = false;
+                                rtAGV_MotorCtrl(ref tAGV_Data.atPathInfoForkForth, a_tWarehousPos.eDirection, true);  // 前面已轉正過 >>所以設為true
+
+                                if (tAGV_Data.CMotor.tMotorData.bFinishFlag == true)
+                                {
+                                    // reset
+                                    tAGV_Data.atPathInfo = new rtPath_Info[0];
+                                    tAGV_Data.CMotor = new rtMotorCtrl();
+                                    tAGV_Data.CFork.tForkData.ucStatus = (byte)rtForkCtrl.ForkStatus.ALIMENT_FORTH;
+
+                                }
+                            }
+                        }
+                        else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
+                        {
+                        }
+                        else if (MainForm.comboBox_MachineType_Num == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)//小車
+                        {
+
+
+                            if (!bCheckWheelAngle)
+                            {
+                                bCheckWheelAngle = (Math.Abs(tAGV_Data.tCarInfo.eWheelAngle) < rtMotorCtrl.ANGLE_MATCH_TH) ? true : false;
+                            }
+                            else
+                            {
+                                tAGV_Data.CFork.tForkData.bEnable = false;
+                                rtAGV_MotorCtrl(ref tAGV_Data.atPathInfoForkForth, a_tWarehousPos.eDirection, true);  // 前面已轉正過 >>所以設為true
+
+                                if (tAGV_Data.CMotor.tMotorData.bFinishFlag == true)
+                                {
+                                    // reset
+                                    tAGV_Data.atPathInfo = new rtPath_Info[0];
+                                    tAGV_Data.CMotor = new rtMotorCtrl();
+                                    //tAGV_Data.CFork.tForkData.ucStatus = (byte)rtForkCtrl.ForkStatus.ALIMENT_FORTH;
+                                    //tAGV_Data.bEmergency = false;
+                                    tAGV_Data.CFork.tForkData.bEnable = false;
+                                    tAGV_Data.CFork.tForkData.ucStatus = (byte)rtForkCtrl.ForkStatus.FINISH;
+
+                                    /*if (tAGV_Data.ucAGV_Status == (byte)rtAGVStatus.UNLOAD)
+                                    {
+                                        MainForm.SCarmodify_speed(300, 0);
+                                        Thread.Sleep(100);
+                                        MainForm.CraMove = 0;
+                                        MainForm.SCarMove("Forward");
+
+                                        Thread.Sleep(10000);
+
+
+                                        MainForm.SCarMoveStop(1);
+                                        Thread.Sleep(100);
+                                        if (MainForm.InputBox("貨物已取走", "請輸入密碼:", ref value) == DialogResult.OK)
+                                        {
+                                            tAGV_Data.CFork.tForkData.bEnable = true;
+                                            tAGV_Data.CFork.tForkData.ucStatus = (byte)rtForkCtrl.ForkStatus.FINISH;
+                                            //MessageBox.Show("儲存成功");
+                                        }
+                                    }
+                                    else if (tAGV_Data.ucAGV_Status == (byte)rtAGVStatus.LOAD)
+                                    {
+                                        MainForm.SCarmodify_speed(300, 0);
+                                        Thread.Sleep(100);
+                                        MainForm.CraMove = 0;
+                                        MainForm.SCarMove("Forward");
+                                        Thread.Sleep(10000);
+
+                                        MainForm.SCarMoveStop(1);
+                                        Thread.Sleep(100);
+                                        if (MainForm.InputBox("貨物已放上車", "請輸入密碼:", ref value) == DialogResult.OK)
+                                        {
+
+                                            tAGV_Data.CFork.tForkData.bEnable = true;
+                                            tAGV_Data.CFork.tForkData.ucStatus = (byte)rtForkCtrl.ForkStatus.FINISH;
+                                            //MessageBox.Show("儲存成功");
+                                        }
+                                    }
+                                    else
+                                    {   // error
+                                        tAGV_Data.CFork.tForkData.height = 0;
+                                        tAGV_Data.CFork.tForkData.bEnable = false;
+                                        tAGV_Data.CFork.tForkData.ucStatus = (byte)rtForkCtrl.ForkStatus.ERROR;
+                                        tAGV_Data.ucAGV_Status = (byte)rtAGVStatus.EMERGENCY_STOP;
+                                        MainForm.SCarMoveStop(1);
+                                    }*/
+
+                                }
+                            }
+
+                            
                         }
                         break;
                     // ALIMENT_FORTH
@@ -1419,6 +1573,7 @@ namespace AlgorithmTool
 
                         if (bDone)
                         {   // 達到要的角度 >> 進入 SET_DEPTH 動作
+
                             tAGV_Data.CFork.tForkData.ucStatus = (byte)rtForkCtrl.ForkStatus.SET_DEPTH;
                         }
                         break;
