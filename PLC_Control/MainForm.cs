@@ -4360,8 +4360,12 @@ namespace PLC_Control
             }
             else if (comboBox_MachineType.SelectedIndex == (byte)rtAGV_Control.Type_Self_Carriage.MediumCar)
             {
-                DeliverData.rtAGV_Chang_Type_Self_Carriage(2);
-                comboBox_MachineType_Num = (byte)rtAGV_Control.Type_Self_Carriage.MediumCar;
+                MessageBox.Show("尚未開放此功能", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                comboBox_MachineType.SelectedIndex = comboBox_MachineType_Num;
+
+                //有開放時，開啟下列功能
+                //DeliverData.rtAGV_Chang_Type_Self_Carriage(2);
+                //comboBox_MachineType_Num = (byte)rtAGV_Control.Type_Self_Carriage.MediumCar;
             }
             else if (comboBox_MachineType.SelectedIndex == (byte)rtAGV_Control.Type_Self_Carriage.SmallCar)
             {
@@ -4370,8 +4374,12 @@ namespace PLC_Control
             }
             else if (comboBox_MachineType.SelectedIndex == (byte)rtAGV_Control.Type_Self_Carriage.Other)
             {
-                DeliverData.rtAGV_Chang_Type_Self_Carriage(4);
-                comboBox_MachineType_Num = (byte)rtAGV_Control.Type_Self_Carriage.Other;
+                MessageBox.Show("尚未開放此功能", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                comboBox_MachineType.SelectedIndex = comboBox_MachineType_Num;
+
+                //有開放時，開啟下列功能
+                //DeliverData.rtAGV_Chang_Type_Self_Carriage(4);
+                //comboBox_MachineType_Num = (byte)rtAGV_Control.Type_Self_Carriage.Other;
             }
 
             //畫面依各車體不同，會有不同介面
