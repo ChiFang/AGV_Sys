@@ -130,7 +130,6 @@ namespace PLC_Control
             SendData_right_Forward[6] = byteArray_right_Forward[0];
             SendData_right_Forward[7] = byteArray_right_Forward[1];
 
-
             //右輪反轉
             SendData_right_Back[0] = 0x01;
             SendData_right_Back[1] = 0x06;
@@ -143,7 +142,6 @@ namespace PLC_Control
             Console.WriteLine("0x{0}", Convert.ToString(byteArray_right_Back[1], 16));
             SendData_right_Back[6] = byteArray_right_Back[0];
             SendData_right_Back[7] = byteArray_right_Back[1];
-
 
             //左輪正轉
             SendData_left_Forward[0] = 0x01;
@@ -158,7 +156,6 @@ namespace PLC_Control
             SendData_left_Forward[6] = byteArray_left_Forward[0];
             SendData_left_Forward[7] = byteArray_left_Forward[1];
 
-
             //左輪反轉
             SendData_left_Back[0] = 0x01;
             SendData_left_Back[1] = 0x06;
@@ -171,7 +168,6 @@ namespace PLC_Control
             Console.WriteLine("0x{0}", Convert.ToString(byteArray_left_Back[1], 16));
             SendData_left_Back[6] = byteArray_left_Back[0];
             SendData_left_Back[7] = byteArray_left_Back[1];
-
 
             //急停
             SendData_Emergency_Stop[0] = 0x00;
@@ -186,7 +182,6 @@ namespace PLC_Control
             SendData_Emergency_Stop[6] = byteArray_Emergency_Stop[0];
             SendData_Emergency_Stop[7] = byteArray_Emergency_Stop[1];
 
-
             //緩停
             SendData_Slow_Stop[0] = 0x00;
             SendData_Slow_Stop[1] = 0x06;
@@ -199,7 +194,6 @@ namespace PLC_Control
             Console.WriteLine("0x{0}", Convert.ToString(byteArray_Slow_Stop[1], 16));
             SendData_Slow_Stop[6] = byteArray_Slow_Stop[0];
             SendData_Slow_Stop[7] = byteArray_Slow_Stop[1];
-
 
             //詢問速度L側
             SendData_speed_ASK_L[0] = 0x01;   //兩輪
@@ -226,7 +220,6 @@ namespace PLC_Control
             Console.WriteLine("0x{0}", Convert.ToString(byteArray_speed_ASK_R[1], 16));
             SendData_speed_ASK_R[6] = byteArray_speed_ASK_R[0];
             SendData_speed_ASK_R[7] = byteArray_speed_ASK_R[1];
-
 
             //修改馬達CW(正轉或反轉方向)(目前沒用到)
             SendData_GET_CW[0] = 0x01;   //兩輪一起下
@@ -291,8 +284,8 @@ namespace PLC_Control
             }
         }
 
-        string[] ReadData;
-
+        string[] ReadData_L;
+        string[] ReadData_R;
 
         private void RS232_DataReceived_L()
         {
@@ -316,7 +309,7 @@ namespace PLC_Control
                     Console.WriteLine(" {0}", Convert.ToString(ReadBytes[i], 16));
             }*/
 
-            ReadData = new string[ReadBytes.Length];
+            ReadData_L = new string[ReadBytes.Length];
             //int[] Readint = new int[ReadBytes.Length];
             int aa = 0;
 
@@ -324,13 +317,13 @@ namespace PLC_Control
             {
                 for (int j = 0; j < ReadBytes.Length; j++)
                 {
-                    ReadData[aa] = Convert.ToString(ReadBytes[j], 16);
+                    ReadData_L[aa] = Convert.ToString(ReadBytes[j], 16);
                     aa++;
                 }
 
                 if (Speed_ASK_L == 1 && ASK_YorN_L == 1) //詢問速度才需要
                 {
-                    string speed = ReadData[5] + ReadData[6];
+                    string speed = ReadData_L[5] + ReadData_L[6];
                     int speed_L = Convert.ToInt16(speed, 16);
                     label_Current_Speed_Num_L.Text = speed_L.ToString();
                     numericUpDown_speed_L = speed_L;
@@ -344,9 +337,10 @@ namespace PLC_Control
 
                     //Thread.Sleep(10);  
                 }
-                else
+
+                else if (Speed_ASK_L == 0)
                 {
-                    string speed = ReadData[0] + ReadData[1] + ReadData[2] + ReadData[3] + ReadData[4] + ReadData[5] + ReadData[6] + ReadData[7];
+                    string speed = ReadData_L[0] + ReadData_L[1] + ReadData_L[2] + ReadData_L[3] + ReadData_L[4] + ReadData_L[5] + ReadData_L[6] + ReadData_L[7];
                     int speed_L = Convert.ToInt16(speed, 16);
                     Console.WriteLine("回傳數值：" + speed_L);
                 }
@@ -377,7 +371,7 @@ namespace PLC_Control
                     Console.WriteLine(" {0}", Convert.ToString(ReadBytes[i], 16));
             }*/
 
-            ReadData = new string[ReadBytes.Length];
+            ReadData_R = new string[ReadBytes.Length];
             //int[] Readint = new int[ReadBytes.Length];
             int aa = 0;
 
@@ -385,13 +379,13 @@ namespace PLC_Control
             {
                 for (int j = 0; j < ReadBytes.Length; j++)
                 {
-                    ReadData[aa] = Convert.ToString(ReadBytes[j], 16);
+                    ReadData_R[aa] = Convert.ToString(ReadBytes[j], 16);
                     aa++;
                 }
 
                 if (Speed_ASK_R == 1 && ASK_YorN_R == 1) //詢問速度才需要
                 {
-                    string speed = ReadData[5] + ReadData[6];
+                    string speed = ReadData_R[5] + ReadData_R[6];
                     int speed_R = Convert.ToInt16(speed, 16);
                     label_Current_Speed_Num_R.Text = speed_R.ToString();
                     numericUpDown_speed_R = speed_R;
@@ -406,9 +400,9 @@ namespace PLC_Control
 
                     //Console.WriteLine(aaa);
                 }
-                else
+                else if (Speed_ASK_R == 0)
                 {
-                    string speed = ReadData[0] + ReadData[1] + ReadData[2] + ReadData[3] + ReadData[4] + ReadData[5] + ReadData[6] + ReadData[7];
+                    string speed = ReadData_R[0] + ReadData_R[1] + ReadData_R[2] + ReadData_R[3] + ReadData_R[4] + ReadData_R[5] + ReadData_R[6] + ReadData_R[7];
                     int speed_R = Convert.ToInt16(speed, 16);
 
                     Console.WriteLine("回傳數值：" + speed_R);
